@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Deltas Report</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        /* Header & Controls */
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        h1 {
+            color: #333;
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #bdbdbd;
+        }
+        
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: #e3f2fd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .stat-item.total {
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        .stat-item.showing {
+            background: #FF9800;
+            color: white;
+        }
+        
+        /* Delta Cards */
+        .delta-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .delta-card.hidden {
+            display: none;
+        }
+        .delta-header {
+            background: #2196F3;
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .delta-header:hover {
+            background: #1976D2;
+        }
+        .delta-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .delta-header .meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .delta-header .index {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .delta-header .toggle {
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        .delta-card.collapsed .toggle {
+            transform: rotate(-90deg);
+        }
+        .delta-header .commit-msg {
+            font-size: 12px;
+            opacity: 0.9;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Collapsible Content */
+        .delta-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .delta-card.collapsed .delta-content {
+            max-height: 0;
+        }
+        .column {
+            padding: 15px;
+            border-right: 1px solid #eee;
+            min-width: 0;
+        }
+        .column:last-child {
+            border-right: none;
+        }
+        .column-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #ddd;
+            font-size: 13px;
+        }
+        .before .column-header {
+            color: #c62828;
+            border-bottom-color: #c62828;
+        }
+        .after .column-header {
+            color: #2e7d32;
+            border-bottom-color: #2e7d32;
+        }
+        .diff .column-header {
+            color: #1565c0;
+            border-bottom-color: #1565c0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 11px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .before pre {
+            background: #ffebee;
+        }
+        .after pre {
+            background: #e8f5e9;
+        }
+        .diff pre {
+            background: #e3f2fd;
+        }
+        .line-removed {
+            background: #ffcdd2;
+            display: block;
+        }
+        .line-added {
+            background: #c8e6c9;
+            display: block;
+        }
+        .empty {
+            color: #999;
+            font-style: italic;
+        }
+        .highlight {
+            background: yellow;
+            padding: 0 2px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        /* Keyboard shortcuts hint */
+        .shortcuts {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+        .shortcuts kbd {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .delta-content {
+                grid-template-columns: 1fr;
+            }
+            .column {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Security Deltas Report</h1>
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" 
+                   placeholder="Search files, commits, code... (Press / to focus)">
+            <button class="btn btn-secondary" onclick="expandAll()">Expand All</button>
+            <button class="btn btn-secondary" onclick="collapseAll()">Collapse All</button>
+            <button class="btn btn-primary" onclick="exportVisible()">Export Visible</button>
+        </div>
+        <div class="stats">
+            <span class="stat-item total">Total: 32</span>
+            <span class="stat-item showing" id="showingCount">Showing: 32</span>
+            <span class="stat-item">unknown: 16 | yaml: 8 | yml: 7 | Dockerfile: 1</span>
+        </div>
+        <div class="shortcuts">
+            <kbd>/</kbd> Search &nbsp;
+            <kbd>Esc</kbd> Clear search &nbsp;
+            <kbd>E</kbd> Expand all &nbsp;
+            <kbd>C</kbd> Collapse all
+        </div>
+    </div>
+    
+    <div id="deltaContainer">
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile merge pull request #136429 from dims/fix-npb-is-ppc64le #   -mcmodel=large: use large code model for &gt; 4gb address space elif [ $(arch) != &quot;x86_64&quot; ]; then \     sed s/-mcmodel=medium//g config/nas.samples/make.def.gcc_x86 &gt; config/make.def; \ #   -mcmodel=large: use large code model for address space beyond default limits">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136429 from dims/fix-npb-is-ppc64le</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#1</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (3 lines)</div>
+                    <pre><span class="line-removed">#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-removed">elif [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+<span class="line-removed">    sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">#   -mcmodel=large: use large code model for address space beyond default limits</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -31,13 +31,11 @@ RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+ 
+ # Create build config based on the architecture and build the workload.
+ # arm64 requires special flags to avoid relocation overflow with large binaries:
+<span class="line-removed">-#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-added">+#   -mcmodel=large: use large code model for address space beyond default limits</span>
+ #   -fno-PIE: disable position-independent executable (incompatible with large model)
+ #   -mno-outline-atomics: inline atomics to avoid linker issues
+ RUN if [ $(arch) = &quot;aarch64&quot; ]; then \
+     sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-PIE -mno-outline-atomics/g&#x27; config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \
+<span class="line-removed">-elif [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+<span class="line-removed">-    sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span>
+ else \
+     cp config/NAS.samples/make.def.gcc_x86 config/make.def; \
+ fi</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile merge pull request #136414 from dims/fix-post-kubernetes-push-e2e-node-perf-npb- run if [ $(arch) != &quot;x86_64&quot; ]; then \ # arm64 requires special flags to avoid relocation overflow with large binaries: #   -mcmodel=large: use large code model for &gt; 4gb address space #   -fno-pie: disable position-independent executable (incompatible with large model) #   -mno-outline-atomics: inline atomics to avoid linker issues run if [ $(arch) = &quot;aarch64&quot; ]; then \     sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-pie -mno-outline-atomics/g&#x27; config/nas.samples/make.def.gcc_x86 &gt; config/make.def; \ elif [ $(arch) != &quot;x86_64&quot; ]; then \">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136414 from dims/fix-post-kubernetes-push-e2e-node-perf-npb-</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#2</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (7 lines)</div>
+                    <pre><span class="line-added"># arm64 requires special flags to avoid relocation overflow with large binaries:</span>
+<span class="line-added">#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-added">#   -fno-PIE: disable position-independent executable (incompatible with large model)</span>
+<span class="line-added">#   -mno-outline-atomics: inline atomics to avoid linker issues</span>
+<span class="line-added">RUN if [ $(arch) = &quot;aarch64&quot; ]; then \</span>
+<span class="line-added">    sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-PIE -mno-outline-atomics/g&#x27; config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span>
+<span class="line-added">elif [ $(arch) != &quot;x86_64&quot; ]; then \</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -30,7 +30,13 @@ WORKDIR ./NPB3.3.1/NPB3.3-OMP</span>
+ RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions
+ 
+ # Create build config based on the architecture and build the workload.
+<span class="line-removed">-RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+<span class="line-added">+# arm64 requires special flags to avoid relocation overflow with large binaries:</span>
+<span class="line-added">+#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-added">+#   -fno-PIE: disable position-independent executable (incompatible with large model)</span>
+<span class="line-added">+#   -mno-outline-atomics: inline atomics to avoid linker issues</span>
+<span class="line-added">+RUN if [ $(arch) = &quot;aarch64&quot; ]; then \</span>
+<span class="line-added">+    sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-PIE -mno-outline-atomics/g&#x27; config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span>
+<span class="line-added">+elif [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \
+ else \
+     cp config/NAS.samples/make.def.gcc_x86 config/make.def; \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile fix post-kubernetes-push-e2e-node-perf-npb-is-test-images problem (arm64) run if [ $(arch) != &quot;x86_64&quot; ]; then \ # arm64 requires special flags to avoid relocation overflow with large binaries: #   -mcmodel=large: use large code model for &gt; 4gb address space #   -fno-pie: disable position-independent executable (incompatible with large model) #   -mno-outline-atomics: inline atomics to avoid linker issues run if [ $(arch) = &quot;aarch64&quot; ]; then \     sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-pie -mno-outline-atomics/g&#x27; config/nas.samples/make.def.gcc_x86 &gt; config/make.def; \ elif [ $(arch) != &quot;x86_64&quot; ]; then \">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">fix post-kubernetes-push-e2e-node-perf-npb-is-test-images problem (arm64)</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#3</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (7 lines)</div>
+                    <pre><span class="line-added"># arm64 requires special flags to avoid relocation overflow with large binaries:</span>
+<span class="line-added">#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-added">#   -fno-PIE: disable position-independent executable (incompatible with large model)</span>
+<span class="line-added">#   -mno-outline-atomics: inline atomics to avoid linker issues</span>
+<span class="line-added">RUN if [ $(arch) = &quot;aarch64&quot; ]; then \</span>
+<span class="line-added">    sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-PIE -mno-outline-atomics/g&#x27; config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span>
+<span class="line-added">elif [ $(arch) != &quot;x86_64&quot; ]; then \</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -30,7 +30,13 @@ WORKDIR ./NPB3.3.1/NPB3.3-OMP</span>
+ RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions
+ 
+ # Create build config based on the architecture and build the workload.
+<span class="line-removed">-RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+<span class="line-added">+# arm64 requires special flags to avoid relocation overflow with large binaries:</span>
+<span class="line-added">+#   -mcmodel=large: use large code model for &gt; 4GB address space</span>
+<span class="line-added">+#   -fno-PIE: disable position-independent executable (incompatible with large model)</span>
+<span class="line-added">+#   -mno-outline-atomics: inline atomics to avoid linker issues</span>
+<span class="line-added">+RUN if [ $(arch) = &quot;aarch64&quot; ]; then \</span>
+<span class="line-added">+    sed &#x27;s/-mcmodel=medium/-mcmodel=large -fno-PIE -mno-outline-atomics/g&#x27; config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</span>
+<span class="line-added">+elif [ $(arch) != &quot;x86_64&quot; ]; then \</span>
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \
+ else \
+     cp config/NAS.samples/make.def.gcc_x86 config/make.def; \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-ep/dockerfile merge pull request #136412 from dims/fix-npb-arm64-cross-build   # add missing shebangs to shell scripts - required for cross-build with qemu emulation # without shebangs, dash (default /bin/sh on debian) fails to execute these scripts via make run sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions ">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-ep/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136412 from dims/fix-npb-arm64-cross-build</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#4</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (0 lines)</div>
+                    <pre><span class="empty">(no lines removed)</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (5 lines)</div>
+                    <pre><span class="line-added"></span>
+<span class="line-added"># Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added"># Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added"></span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -24,6 +24,11 @@ ADD http://www.nas.nasa.gov/assets/npb/NPB3.4.3.tar.gz .</span>
+ RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3
+ 
+ WORKDIR ./NPB3.4.3/NPB3.4-OMP
+<span class="line-added">+</span>
+<span class="line-added">+# Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added">+# Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">+RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added">+</span>
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def_gcc &gt; config/make.def; \
+ else \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile merge pull request #136412 from dims/fix-npb-arm64-cross-build  # add missing shebangs to shell scripts - required for cross-build with qemu emulation # without shebangs, dash (default /bin/sh on debian) fails to execute these scripts via make run sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions ">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136412 from dims/fix-npb-arm64-cross-build</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#5</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (0 lines)</div>
+                    <pre><span class="empty">(no lines removed)</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (4 lines)</div>
+                    <pre><span class="line-added"># Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added"># Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added"></span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -25,6 +25,10 @@ RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span>
+ 
+ WORKDIR ./NPB3.3.1/NPB3.3-OMP
+ 
+<span class="line-added">+# Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added">+# Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">+RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added">+</span>
+ # Create build config based on the architecture and build the workload.
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-ep/dockerfile fix npb test images arm64 cross-build failures   # add missing shebangs to shell scripts - required for cross-build with qemu emulation # without shebangs, dash (default /bin/sh on debian) fails to execute these scripts via make run sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions ">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-ep/Dockerfile</h3>
+                    <div class="commit-msg">fix npb test images arm64 cross-build failures</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#6</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (0 lines)</div>
+                    <pre><span class="empty">(no lines removed)</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (5 lines)</div>
+                    <pre><span class="line-added"></span>
+<span class="line-added"># Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added"># Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added"></span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -24,6 +24,11 @@ ADD http://www.nas.nasa.gov/assets/npb/NPB3.4.3.tar.gz .</span>
+ RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3
+ 
+ WORKDIR ./NPB3.4.3/NPB3.4-OMP
+<span class="line-added">+</span>
+<span class="line-added">+# Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added">+# Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">+RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added">+</span>
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def_gcc &gt; config/make.def; \
+ else \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile fix npb test images arm64 cross-build failures  # add missing shebangs to shell scripts - required for cross-build with qemu emulation # without shebangs, dash (default /bin/sh on debian) fails to execute these scripts via make run sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions ">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">fix npb test images arm64 cross-build failures</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#7</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (0 lines)</div>
+                    <pre><span class="empty">(no lines removed)</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (4 lines)</div>
+                    <pre><span class="line-added"># Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added"># Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added"></span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -25,6 +25,10 @@ RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span>
+ 
+ WORKDIR ./NPB3.3.1/NPB3.3-OMP
+ 
+<span class="line-added">+# Add missing shebangs to shell scripts - required for cross-build with QEMU emulation</span>
+<span class="line-added">+# Without shebangs, dash (default /bin/sh on Debian) fails to execute these scripts via make</span>
+<span class="line-added">+RUN sed -i &#x27;1i#!/bin/sh&#x27; sys/print_header sys/print_instructions</span>
+<span class="line-added">+</span>
+ # Create build config based on the architecture and build the workload.
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \
+     sed s/-mcmodel=medium//g config/NAS.samples/make.def.gcc_x86 &gt; config/make.def; \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-ep/dockerfile merge pull request #136371 from dims/fix-npb-cross-build-permissions run tar xzf npb3.4.3.tar.gz # fix permissions for cross-build with qemu emulation run tar xzf npb3.4.3.tar.gz &amp;&amp; chmod -r a+rx npb3.4.3">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-ep/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136371 from dims/fix-npb-cross-build-permissions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#8</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN tar xzf NPB3.4.3.tar.gz</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (2 lines)</div>
+                    <pre><span class="line-added"># Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -20,7 +20,8 @@ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/</span>
+ RUN apt-get update &amp;&amp; apt-get install -y libc6-dev g++ bzip2 dpkg-dev build-essential gfortran
+ 
+ ADD http://www.nas.nasa.gov/assets/npb/NPB3.4.3.tar.gz .
+<span class="line-removed">-RUN tar xzf NPB3.4.3.tar.gz</span>
+<span class="line-added">+# Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">+RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3</span>
+ 
+ WORKDIR ./NPB3.4.3/NPB3.4-OMP
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile merge pull request #136371 from dims/fix-npb-cross-build-permissions run tar xzf npb3.3.1.tar.gz # fix permissions for cross-build with qemu emulation run tar xzf npb3.3.1.tar.gz &amp;&amp; chmod -r a+rx npb3.3.1">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136371 from dims/fix-npb-cross-build-permissions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#9</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN tar xzf NPB3.3.1.tar.gz</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (2 lines)</div>
+                    <pre><span class="line-added"># Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -20,7 +20,8 @@ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/</span>
+ RUN apt-get update &amp;&amp; apt-get install -y build-essential gfortran
+ 
+ ADD http://www.nas.nasa.gov/assets/npb/NPB3.3.1.tar.gz .
+<span class="line-removed">-RUN tar xzf NPB3.3.1.tar.gz</span>
+<span class="line-added">+# Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">+RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span>
+ 
+ WORKDIR ./NPB3.3.1/NPB3.3-OMP
+ </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/compatibility_lifecycle/reference/versioned_feature_list.yaml features: lock topologymanageroptions     locktodefault: false     locktodefault: true">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/compatibility_lifecycle/reference/versioned_feature_list.yaml</h3>
+                    <div class="commit-msg">features: lock topologymanageroptions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#10</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">    lockToDefault: false</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">    lockToDefault: true</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1878,7 +1878,7 @@</span>
+     preRelease: Beta
+     version: &quot;1.28&quot;
+   - default: true
+<span class="line-removed">-    lockToDefault: false</span>
+<span class="line-added">+    lockToDefault: true</span>
+     preRelease: GA
+     version: &quot;1.32&quot;
+ - name: TranslateStreamCloseWebsocketRequests</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-ep/dockerfile fix npb test image cross-build for arm64 run tar xzf npb3.4.3.tar.gz # fix permissions for cross-build with qemu emulation run tar xzf npb3.4.3.tar.gz &amp;&amp; chmod -r a+rx npb3.4.3">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-ep/Dockerfile</h3>
+                    <div class="commit-msg">fix npb test image cross-build for arm64</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#11</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN tar xzf NPB3.4.3.tar.gz</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (2 lines)</div>
+                    <pre><span class="line-added"># Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -20,7 +20,8 @@ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/</span>
+ RUN apt-get update &amp;&amp; apt-get install -y libc6-dev g++ bzip2 dpkg-dev build-essential gfortran
+ 
+ ADD http://www.nas.nasa.gov/assets/npb/NPB3.4.3.tar.gz .
+<span class="line-removed">-RUN tar xzf NPB3.4.3.tar.gz</span>
+<span class="line-added">+# Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">+RUN tar xzf NPB3.4.3.tar.gz &amp;&amp; chmod -R a+rX NPB3.4.3</span>
+ 
+ WORKDIR ./NPB3.4.3/NPB3.4-OMP
+ RUN if [ $(arch) != &quot;x86_64&quot; ]; then \</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-is/dockerfile fix npb test image cross-build for arm64 run tar xzf npb3.3.1.tar.gz # fix permissions for cross-build with qemu emulation run tar xzf npb3.3.1.tar.gz &amp;&amp; chmod -r a+rx npb3.3.1">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-is/Dockerfile</h3>
+                    <div class="commit-msg">fix npb test image cross-build for arm64</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#12</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN tar xzf NPB3.3.1.tar.gz</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (2 lines)</div>
+                    <pre><span class="line-added"># Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -20,7 +20,8 @@ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/</span>
+ RUN apt-get update &amp;&amp; apt-get install -y build-essential gfortran
+ 
+ ADD http://www.nas.nasa.gov/assets/npb/NPB3.3.1.tar.gz .
+<span class="line-removed">-RUN tar xzf NPB3.3.1.tar.gz</span>
+<span class="line-added">+# Fix permissions for cross-build with QEMU emulation</span>
+<span class="line-added">+RUN tar xzf NPB3.3.1.tar.gz &amp;&amp; chmod -R a+rX NPB3.3.1</span>
+ 
+ WORKDIR ./NPB3.3.1/NPB3.3-OMP
+ </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/go.opentelemetry.io/otel/.golangci.yml update opentelemetry dependencies to latest versions      usetesting:       context-background: true       context-todo: true">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/go.opentelemetry.io/otel/.golangci.yml</h3>
+                    <div class="commit-msg">update opentelemetry dependencies to latest versions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#13</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (0 lines)</div>
+                    <pre><span class="empty">(no lines removed)</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (3 lines)</div>
+                    <pre><span class="line-added">    usetesting:</span>
+<span class="line-added">      context-background: true</span>
+<span class="line-added">      context-todo: true</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -197,6 +197,9 @@ linters:</span>
+         - float-compare
+         - go-require
+         - require-error
+<span class="line-added">+    usetesting:</span>
+<span class="line-added">+      context-background: true</span>
+<span class="line-added">+      context-todo: true</span>
+   exclusions:
+     generated: lax
+     presets:</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/go.opentelemetry.io/otel/dependencies.dockerfile update opentelemetry dependencies to latest versions from otel/weaver:v0.17.1@sha256:32523b5e44fb44418786347e9f7dde187d8797adb6d57a2ee99c245346c3cdfe as weaver from otel/weaver:v0.19.0@sha256:3d20814cef548f1d31f27f054fb4cd6a05125641a9f7cc29fc7eb234e8052cd9 as weaver">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/go.opentelemetry.io/otel/dependencies.Dockerfile</h3>
+                    <div class="commit-msg">update opentelemetry dependencies to latest versions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#14</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">FROM otel/weaver:v0.17.1@sha256:32523b5e44fb44418786347e9f7dde187d8797adb6d57a2ee99c245346c3cdfe AS weaver</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">FROM otel/weaver:v0.19.0@sha256:3d20814cef548f1d31f27f054fb4cd6a05125641a9f7cc29fc7eb234e8052cd9 AS weaver</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1,4 +1,4 @@</span>
+ # This is a renovate-friendly source of Docker images.
+ FROM python:3.13.6-slim-bullseye@sha256:e98b521460ee75bca92175c16247bdf7275637a8faaeb2bcfa19d879ae5c4b9a AS python
+<span class="line-removed">-FROM otel/weaver:v0.17.1@sha256:32523b5e44fb44418786347e9f7dde187d8797adb6d57a2ee99c245346c3cdfe AS weaver</span>
+<span class="line-added">+FROM otel/weaver:v0.19.0@sha256:3d20814cef548f1d31f27f054fb4cd6a05125641a9f7cc29fc7eb234e8052cd9 AS weaver</span>
+ FROM avtodev/markdown-lint:v1@sha256:6aeedc2f49138ce7a1cd0adffc1b1c0321b841dc2102408967d9301c031949ee AS markdown</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/go.opentelemetry.io/otel/versions.yaml update opentelemetry dependencies to latest versions     version: v1.38.0     version: v0.60.0     version: v0.14.0     version: v0.0.13     version: v1.39.0     version: v0.61.0     version: v0.15.0     version: v0.0.14 modules:   go.opentelemetry.io/otel/exporters/stdout/stdouttrace:     version-refs:       - ./internal/version.go   go.opentelemetry.io/otel/exporters/prometheus:     version-refs:       - ./internal/version.go   go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc:     version-refs:       - ./internal/version.go   go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc:     version-refs:       - ./internal/version.go   go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp:     version-refs:       - ./internal/version.go   go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp:     version-refs:       - ./internal/version.go">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/go.opentelemetry.io/otel/versions.yaml</h3>
+                    <div class="commit-msg">update opentelemetry dependencies to latest versions</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#15</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (4 lines)</div>
+                    <pre><span class="line-removed">    version: v1.38.0</span>
+<span class="line-removed">    version: v0.60.0</span>
+<span class="line-removed">    version: v0.14.0</span>
+<span class="line-removed">    version: v0.0.13</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (23 lines)</div>
+                    <pre><span class="line-added">    version: v1.39.0</span>
+<span class="line-added">    version: v0.61.0</span>
+<span class="line-added">    version: v0.15.0</span>
+<span class="line-added">    version: v0.0.14</span>
+<span class="line-added">modules:</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/stdout/stdouttrace:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/prometheus:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span>
+<span class="line-added">  go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp:</span>
+<span class="line-added">    version-refs:</span>
+<span class="line-added">      - ./internal/version.go</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -3,7 +3,7 @@</span>
+ 
+ module-sets:
+   stable-v1:
+<span class="line-removed">-    version: v1.38.0</span>
+<span class="line-added">+    version: v1.39.0</span>
+     modules:
+       - go.opentelemetry.io/otel
+       - go.opentelemetry.io/otel/bridge/opencensus
+<span style="color:#1565c0;font-weight:bold">@@ -22,11 +22,11 @@ module-sets:</span>
+       - go.opentelemetry.io/otel/sdk/metric
+       - go.opentelemetry.io/otel/trace
+   experimental-metrics:
+<span class="line-removed">-    version: v0.60.0</span>
+<span class="line-added">+    version: v0.61.0</span>
+     modules:
+       - go.opentelemetry.io/otel/exporters/prometheus
+   experimental-logs:
+<span class="line-removed">-    version: v0.14.0</span>
+<span class="line-added">+    version: v0.15.0</span>
+     modules:
+       - go.opentelemetry.io/otel/log
+       - go.opentelemetry.io/otel/log/logtest
+<span style="color:#1565c0;font-weight:bold">@@ -36,9 +36,28 @@ module-sets:</span>
+       - go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp
+       - go.opentelemetry.io/otel/exporters/stdout/stdoutlog
+   experimental-schema:
+<span class="line-removed">-    version: v0.0.13</span>
+<span class="line-added">+    version: v0.0.14</span>
+     modules:
+       - go.opentelemetry.io/otel/schema
+ excluded-modules:
+   - go.opentelemetry.io/otel/internal/tools
+   - go.opentelemetry.io/otel/trace/internal/telemetry/test
+<span class="line-added">+modules:</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/stdout/stdouttrace:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/prometheus:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/pets/zookeeper-installer/dockerfile merge pull request #136352 from dims/fix-zookeeper-installer-netcat run clean-install wget bash netcat run clean-install wget bash netcat-openbsd">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/pets/zookeeper-installer/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136352 from dims/fix-zookeeper-installer-netcat</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#16</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN clean-install wget bash netcat</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">RUN clean-install wget bash netcat-openbsd</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -19,7 +19,7 @@ FROM $BASEIMAGE</span>
+ 
+ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/
+ 
+<span class="line-removed">-RUN clean-install wget bash netcat</span>
+<span class="line-added">+RUN clean-install wget bash netcat-openbsd</span>
+ 
+ ADD on-start.sh /
+ </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/npb-ep/dockerfile merge pull request #136351 from dims/fix-npb-images-base run rm -f /etc/apt/sources.list run echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list run echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list run echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list run echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list  run apt-get update &amp;&amp; apt-get install -y --allow-downgrades libbz2-1.0=1.0.6-9.2~deb10u1 libc6=2.28-10+deb10u1 libc6-dev g++ bzip2 dpkg-dev gfortran-8 build-essential gfortran run apt-get update &amp;&amp; apt-get install -y libc6-dev g++ bzip2 dpkg-dev build-essential gfortran">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/npb-ep/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136351 from dims/fix-npb-images-base</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#17</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (7 lines)</div>
+                    <pre><span class="line-removed">RUN rm -f /etc/apt/sources.list</span>
+<span class="line-removed">RUN echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">RUN echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">RUN echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">RUN echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed"></span>
+<span class="line-removed">RUN apt-get update &amp;&amp; apt-get install -y --allow-downgrades libbz2-1.0=1.0.6-9.2~deb10u1 libc6=2.28-10+deb10u1 libc6-dev g++ bzip2 dpkg-dev gfortran-8 build-essential gfortran</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">RUN apt-get update &amp;&amp; apt-get install -y libc6-dev g++ bzip2 dpkg-dev build-essential gfortran</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -17,13 +17,7 @@ FROM $BASEIMAGE as build_node_perf_npb_ep</span>
+ 
+ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/
+ 
+<span class="line-removed">-RUN rm -f /etc/apt/sources.list</span>
+<span class="line-removed">-RUN echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">-RUN echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">-RUN echo &quot;deb [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">-RUN echo &quot;deb-src [trusted=yes] http://archive.debian.org/debian buster-updates main&quot; &gt;&gt; /etc/apt/sources.list</span>
+<span class="line-removed">-</span>
+<span class="line-removed">-RUN apt-get update &amp;&amp; apt-get install -y --allow-downgrades libbz2-1.0=1.0.6-9.2~deb10u1 libc6=2.28-10+deb10u1 libc6-dev g++ bzip2 dpkg-dev gfortran-8 build-essential gfortran</span>
+<span class="line-added">+RUN apt-get update &amp;&amp; apt-get install -y libc6-dev g++ bzip2 dpkg-dev build-essential gfortran</span>
+ 
+ ADD http://www.nas.nasa.gov/assets/npb/NPB3.4.3.tar.gz .
+ RUN tar xzf NPB3.4.3.tar.gz</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/tf-wide-deep/dockerfile merge pull request #136349 from dims/fix-tf-wide-deep-image run wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \ &amp;&amp; tar xzf v2.15.0.tar.gz \ &amp;&amp; rm -f v2.15.0.tar.gz run python /models-2.15.0/official/wide_deep/data_download.py workdir $home/models-2.15.0/official/wide_deep env pythonpath=$pythonpath:$home/models-2.15.0 # use models v1.9.0 which contains the wide_deep implementation. # the wide_deep directory was removed in later versions of tensorflow/models. # the v1.9.0 code uses tf.estimator apis which are still available in tf 2.x. run wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \ &amp;&amp; tar xzf v1.9.0.tar.gz \ &amp;&amp; rm -f v1.9.0.tar.gz run python /models-1.9.0/official/wide_deep/data_download.py workdir $home/models-1.9.0/official/wide_deep env pythonpath=$pythonpath:$home/models-1.9.0">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/tf-wide-deep/Dockerfile</h3>
+                    <div class="commit-msg">merge pull request #136349 from dims/fix-tf-wide-deep-image</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#18</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (6 lines)</div>
+                    <pre><span class="line-removed">RUN wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \</span>
+<span class="line-removed">&amp;&amp; tar xzf v2.15.0.tar.gz \</span>
+<span class="line-removed">&amp;&amp; rm -f v2.15.0.tar.gz</span>
+<span class="line-removed">RUN python /models-2.15.0/official/wide_deep/data_download.py</span>
+<span class="line-removed">WORKDIR $HOME/models-2.15.0/official/wide_deep</span>
+<span class="line-removed">ENV PYTHONPATH=$PYTHONPATH:$HOME/models-2.15.0</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (9 lines)</div>
+                    <pre><span class="line-added"># Use models v1.9.0 which contains the wide_deep implementation.</span>
+<span class="line-added"># The wide_deep directory was removed in later versions of tensorflow/models.</span>
+<span class="line-added"># The v1.9.0 code uses tf.estimator APIs which are still available in TF 2.x.</span>
+<span class="line-added">RUN wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \</span>
+<span class="line-added">&amp;&amp; tar xzf v1.9.0.tar.gz \</span>
+<span class="line-added">&amp;&amp; rm -f v1.9.0.tar.gz</span>
+<span class="line-added">RUN python /models-1.9.0/official/wide_deep/data_download.py</span>
+<span class="line-added">WORKDIR $HOME/models-1.9.0/official/wide_deep</span>
+<span class="line-added">ENV PYTHONPATH=$PYTHONPATH:$HOME/models-1.9.0</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -21,13 +21,16 @@ RUN apt-get update &amp;&amp; apt-get install -y wget time</span>
+ 
+ RUN pip install tensorflow==2.20.0
+ 
+<span class="line-removed">-RUN wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \</span>
+<span class="line-removed">-&amp;&amp; tar xzf v2.15.0.tar.gz \</span>
+<span class="line-removed">-&amp;&amp; rm -f v2.15.0.tar.gz</span>
+<span class="line-added">+# Use models v1.9.0 which contains the wide_deep implementation.</span>
+<span class="line-added">+# The wide_deep directory was removed in later versions of tensorflow/models.</span>
+<span class="line-added">+# The v1.9.0 code uses tf.estimator APIs which are still available in TF 2.x.</span>
+<span class="line-added">+RUN wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \</span>
+<span class="line-added">+&amp;&amp; tar xzf v1.9.0.tar.gz \</span>
+<span class="line-added">+&amp;&amp; rm -f v1.9.0.tar.gz</span>
+ 
+<span class="line-removed">-RUN python /models-2.15.0/official/wide_deep/data_download.py</span>
+<span class="line-added">+RUN python /models-1.9.0/official/wide_deep/data_download.py</span>
+ 
+<span class="line-removed">-WORKDIR $HOME/models-2.15.0/official/wide_deep</span>
+<span class="line-removed">-ENV PYTHONPATH=$PYTHONPATH:$HOME/models-2.15.0</span>
+<span class="line-added">+WORKDIR $HOME/models-1.9.0/official/wide_deep</span>
+<span class="line-added">+ENV PYTHONPATH=$PYTHONPATH:$HOME/models-1.9.0</span>
+ 
+ ENTRYPOINT python ./wide_deep.py</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/pets/zookeeper-installer/dockerfile test/images: fix zookeeper-installer netcat package for bookworm run clean-install wget bash netcat run clean-install wget bash netcat-openbsd">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/pets/zookeeper-installer/Dockerfile</h3>
+                    <div class="commit-msg">test/images: fix zookeeper-installer netcat package for bookworm</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#19</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">RUN clean-install wget bash netcat</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">RUN clean-install wget bash netcat-openbsd</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -19,7 +19,7 @@ FROM $BASEIMAGE</span>
+ 
+ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/
+ 
+<span class="line-removed">-RUN clean-install wget bash netcat</span>
+<span class="line-added">+RUN clean-install wget bash netcat-openbsd</span>
+ 
+ ADD on-start.sh /
+ </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/images/node-perf/tf-wide-deep/dockerfile test/images: fix tf-wide-deep build by using models v1.9.0 run wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \ &amp;&amp; tar xzf v2.15.0.tar.gz \ &amp;&amp; rm -f v2.15.0.tar.gz run python /models-2.15.0/official/wide_deep/data_download.py workdir $home/models-2.15.0/official/wide_deep env pythonpath=$pythonpath:$home/models-2.15.0 # use models v1.9.0 which contains the wide_deep implementation. # the wide_deep directory was removed in later versions of tensorflow/models. # the v1.9.0 code uses tf.estimator apis which are still available in tf 2.x. run wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \ &amp;&amp; tar xzf v1.9.0.tar.gz \ &amp;&amp; rm -f v1.9.0.tar.gz run python /models-1.9.0/official/wide_deep/data_download.py workdir $home/models-1.9.0/official/wide_deep env pythonpath=$pythonpath:$home/models-1.9.0">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/images/node-perf/tf-wide-deep/Dockerfile</h3>
+                    <div class="commit-msg">test/images: fix tf-wide-deep build by using models v1.9.0</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#20</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (6 lines)</div>
+                    <pre><span class="line-removed">RUN wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \</span>
+<span class="line-removed">&amp;&amp; tar xzf v2.15.0.tar.gz \</span>
+<span class="line-removed">&amp;&amp; rm -f v2.15.0.tar.gz</span>
+<span class="line-removed">RUN python /models-2.15.0/official/wide_deep/data_download.py</span>
+<span class="line-removed">WORKDIR $HOME/models-2.15.0/official/wide_deep</span>
+<span class="line-removed">ENV PYTHONPATH=$PYTHONPATH:$HOME/models-2.15.0</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (9 lines)</div>
+                    <pre><span class="line-added"># Use models v1.9.0 which contains the wide_deep implementation.</span>
+<span class="line-added"># The wide_deep directory was removed in later versions of tensorflow/models.</span>
+<span class="line-added"># The v1.9.0 code uses tf.estimator APIs which are still available in TF 2.x.</span>
+<span class="line-added">RUN wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \</span>
+<span class="line-added">&amp;&amp; tar xzf v1.9.0.tar.gz \</span>
+<span class="line-added">&amp;&amp; rm -f v1.9.0.tar.gz</span>
+<span class="line-added">RUN python /models-1.9.0/official/wide_deep/data_download.py</span>
+<span class="line-added">WORKDIR $HOME/models-1.9.0/official/wide_deep</span>
+<span class="line-added">ENV PYTHONPATH=$PYTHONPATH:$HOME/models-1.9.0</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -21,13 +21,16 @@ RUN apt-get update &amp;&amp; apt-get install -y wget time</span>
+ 
+ RUN pip install tensorflow==2.20.0
+ 
+<span class="line-removed">-RUN wget https://github.com/tensorflow/models/archive/v2.15.0.tar.gz \</span>
+<span class="line-removed">-&amp;&amp; tar xzf v2.15.0.tar.gz \</span>
+<span class="line-removed">-&amp;&amp; rm -f v2.15.0.tar.gz</span>
+<span class="line-added">+# Use models v1.9.0 which contains the wide_deep implementation.</span>
+<span class="line-added">+# The wide_deep directory was removed in later versions of tensorflow/models.</span>
+<span class="line-added">+# The v1.9.0 code uses tf.estimator APIs which are still available in TF 2.x.</span>
+<span class="line-added">+RUN wget https://github.com/tensorflow/models/archive/v1.9.0.tar.gz \</span>
+<span class="line-added">+&amp;&amp; tar xzf v1.9.0.tar.gz \</span>
+<span class="line-added">+&amp;&amp; rm -f v1.9.0.tar.gz</span>
+ 
+<span class="line-removed">-RUN python /models-2.15.0/official/wide_deep/data_download.py</span>
+<span class="line-added">+RUN python /models-1.9.0/official/wide_deep/data_download.py</span>
+ 
+<span class="line-removed">-WORKDIR $HOME/models-2.15.0/official/wide_deep</span>
+<span class="line-removed">-ENV PYTHONPATH=$PYTHONPATH:$HOME/models-2.15.0</span>
+<span class="line-added">+WORKDIR $HOME/models-1.9.0/official/wide_deep</span>
+<span class="line-added">+ENV PYTHONPATH=$PYTHONPATH:$HOME/models-1.9.0</span>
+ 
+ ENTRYPOINT python ./wide_deep.py</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/github.com/godbus/dbus/v5/.cirrus.yml merge pull request #136212 from dims/update-security-deps-jan2026-v2   image_family: freebsd-14-2   install_script: pkg install -y go122 dbus     go122 test -v ./...   image_family: freebsd-14-3   install_script: pkg install -y go125 dbus     go125 test -v ./...">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/github.com/godbus/dbus/v5/.cirrus.yml</h3>
+                    <div class="commit-msg">merge pull request #136212 from dims/update-security-deps-jan2026-v2</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#21</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (3 lines)</div>
+                    <pre><span class="line-removed">  image_family: freebsd-14-2</span>
+<span class="line-removed">  install_script: pkg install -y go122 dbus</span>
+<span class="line-removed">    go122 test -v ./...</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (3 lines)</div>
+                    <pre><span class="line-added">  image_family: freebsd-14-3</span>
+<span class="line-added">  install_script: pkg install -y go125 dbus</span>
+<span class="line-added">    go125 test -v ./...</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1,11 +1,11 @@</span>
+ # See https://cirrus-ci.org/guide/FreeBSD/
+ freebsd_instance:
+<span class="line-removed">-  image_family: freebsd-14-2</span>
+<span class="line-added">+  image_family: freebsd-14-3</span>
+ 
+ task:
+   name: Test on FreeBSD
+<span class="line-removed">-  install_script: pkg install -y go122 dbus</span>
+<span class="line-added">+  install_script: pkg install -y go125 dbus</span>
+   test_script: |
+     /usr/local/etc/rc.d/dbus onestart &amp;&amp; \
+     eval `dbus-launch --sh-syntax` &amp;&amp; \
+<span class="line-removed">-    go122 test -v ./...</span>
+<span class="line-added">+    go125 test -v ./...</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/github.com/godbus/dbus/v5/.golangci.yml merge pull request #136212 from dims/update-security-deps-jan2026-v2 # for documentation, see https://golangci-lint.run/usage/configuration/     - gofumpt version: &quot;2&quot;   exclusions:     presets:       - std-error-handling  formatters:   enable:     - gofumpt">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/github.com/godbus/dbus/v5/.golangci.yml</h3>
+                    <div class="commit-msg">merge pull request #136212 from dims/update-security-deps-jan2026-v2</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#22</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (2 lines)</div>
+                    <pre><span class="line-removed"># For documentation, see https://golangci-lint.run/usage/configuration/</span>
+<span class="line-removed">    - gofumpt</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (8 lines)</div>
+                    <pre><span class="line-added">version: &quot;2&quot;</span>
+<span class="line-added">  exclusions:</span>
+<span class="line-added">    presets:</span>
+<span class="line-added">      - std-error-handling</span>
+<span class="line-added"></span>
+<span class="line-added">formatters:</span>
+<span class="line-added">  enable:</span>
+<span class="line-added">    - gofumpt</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1,7 +1,13 @@</span>
+<span class="line-removed">-# For documentation, see https://golangci-lint.run/usage/configuration/</span>
+<span class="line-added">+version: &quot;2&quot;</span>
+ 
+ linters:
+   enable:
+<span class="line-removed">-    - gofumpt</span>
+     - unconvert
+     - unparam
+<span class="line-added">+  exclusions:</span>
+<span class="line-added">+    presets:</span>
+<span class="line-added">+      - std-error-handling</span>
+<span class="line-added">+</span>
+<span class="line-added">+formatters:</span>
+<span class="line-added">+  enable:</span>
+<span class="line-added">+    - gofumpt</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/go.uber.org/zap/.golangci.yml merge pull request #136212 from dims/update-security-deps-jan2026-v2       - niliness       - nilness">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/go.uber.org/zap/.golangci.yml</h3>
+                    <div class="commit-msg">merge pull request #136212 from dims/update-security-deps-jan2026-v2</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#23</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">      - niliness</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">      - nilness</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -25,7 +25,7 @@ linters-settings:</span>
+   govet:
+     # These govet checks are disabled by default, but they&#x27;re useful.
+     enable:
+<span class="line-removed">-      - niliness</span>
+<span class="line-added">+      - nilness</span>
+       - reflectvaluecompare
+       - sortslice
+       - unusedwrite</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/github.com/godbus/dbus/v5/.cirrus.yml update security and stability dependencies   image_family: freebsd-14-2   install_script: pkg install -y go122 dbus     go122 test -v ./...   image_family: freebsd-14-3   install_script: pkg install -y go125 dbus     go125 test -v ./...">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/github.com/godbus/dbus/v5/.cirrus.yml</h3>
+                    <div class="commit-msg">update security and stability dependencies</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#24</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (3 lines)</div>
+                    <pre><span class="line-removed">  image_family: freebsd-14-2</span>
+<span class="line-removed">  install_script: pkg install -y go122 dbus</span>
+<span class="line-removed">    go122 test -v ./...</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (3 lines)</div>
+                    <pre><span class="line-added">  image_family: freebsd-14-3</span>
+<span class="line-added">  install_script: pkg install -y go125 dbus</span>
+<span class="line-added">    go125 test -v ./...</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1,11 +1,11 @@</span>
+ # See https://cirrus-ci.org/guide/FreeBSD/
+ freebsd_instance:
+<span class="line-removed">-  image_family: freebsd-14-2</span>
+<span class="line-added">+  image_family: freebsd-14-3</span>
+ 
+ task:
+   name: Test on FreeBSD
+<span class="line-removed">-  install_script: pkg install -y go122 dbus</span>
+<span class="line-added">+  install_script: pkg install -y go125 dbus</span>
+   test_script: |
+     /usr/local/etc/rc.d/dbus onestart &amp;&amp; \
+     eval `dbus-launch --sh-syntax` &amp;&amp; \
+<span class="line-removed">-    go122 test -v ./...</span>
+<span class="line-added">+    go125 test -v ./...</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/github.com/godbus/dbus/v5/.golangci.yml update security and stability dependencies # for documentation, see https://golangci-lint.run/usage/configuration/     - gofumpt version: &quot;2&quot;   exclusions:     presets:       - std-error-handling  formatters:   enable:     - gofumpt">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/github.com/godbus/dbus/v5/.golangci.yml</h3>
+                    <div class="commit-msg">update security and stability dependencies</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#25</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (2 lines)</div>
+                    <pre><span class="line-removed"># For documentation, see https://golangci-lint.run/usage/configuration/</span>
+<span class="line-removed">    - gofumpt</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (8 lines)</div>
+                    <pre><span class="line-added">version: &quot;2&quot;</span>
+<span class="line-added">  exclusions:</span>
+<span class="line-added">    presets:</span>
+<span class="line-added">      - std-error-handling</span>
+<span class="line-added"></span>
+<span class="line-added">formatters:</span>
+<span class="line-added">  enable:</span>
+<span class="line-added">    - gofumpt</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -1,7 +1,13 @@</span>
+<span class="line-removed">-# For documentation, see https://golangci-lint.run/usage/configuration/</span>
+<span class="line-added">+version: &quot;2&quot;</span>
+ 
+ linters:
+   enable:
+<span class="line-removed">-    - gofumpt</span>
+     - unconvert
+     - unparam
+<span class="line-added">+  exclusions:</span>
+<span class="line-added">+    presets:</span>
+<span class="line-added">+      - std-error-handling</span>
+<span class="line-added">+</span>
+<span class="line-added">+formatters:</span>
+<span class="line-added">+  enable:</span>
+<span class="line-added">+    - gofumpt</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="vendor/go.uber.org/zap/.golangci.yml update security and stability dependencies       - niliness       - nilness">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>vendor/go.uber.org/zap/.golangci.yml</h3>
+                    <div class="commit-msg">update security and stability dependencies</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#26</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">      - niliness</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">      - nilness</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -25,7 +25,7 @@ linters-settings:</span>
+   govet:
+     # These govet checks are disabled by default, but they&#x27;re useful.
+     enable:
+<span class="line-removed">-      - niliness</span>
+<span class="line-added">+      - nilness</span>
+       - reflectvaluecompare
+       - sortslice
+       - unusedwrite</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="build/dependencies.yaml merge pull request #136257 from bentheelder/go125.6     version: 1.25.5     version: 1.25.6">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>build/dependencies.yaml</h3>
+                    <div class="commit-msg">merge pull request #136257 from bentheelder/go125.6</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#27</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">    version: 1.25.5</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">    version: 1.25.6</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -103,7 +103,7 @@ dependencies:</span>
+   # Golang
+   # TODO: this should really be eliminated and controlled by .go-version
+   - name: &quot;golang: upstream version&quot;
+<span class="line-removed">-    version: 1.25.5</span>
+<span class="line-added">+    version: 1.25.6</span>
+     refPaths:
+     - path: .go-version
+     - path: staging/publishing/rules.yaml</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="staging/publishing/rules.yaml merge pull request #136257 from bentheelder/go125.6 default-go-version: 1.25.5 default-go-version: 1.25.6">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>staging/publishing/rules.yaml</h3>
+                    <div class="commit-msg">merge pull request #136257 from bentheelder/go125.6</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#28</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">default-go-version: 1.25.5</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">default-go-version: 1.25.6</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -2489,4 +2489,4 @@ rules:</span>
+       - staging/src/k8s.io/externaljwt
+ recursive-delete-patterns:
+ - &#x27;*/.gitattributes&#x27;
+<span class="line-removed">-default-go-version: 1.25.5</span>
+<span class="line-added">+default-go-version: 1.25.6</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="build/dependencies.yaml bump go to 1.25.6 for cve fixes     version: 1.25.5     version: 1.25.6">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>build/dependencies.yaml</h3>
+                    <div class="commit-msg">bump go to 1.25.6 for cve fixes</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#29</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">    version: 1.25.5</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">    version: 1.25.6</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -103,7 +103,7 @@ dependencies:</span>
+   # Golang
+   # TODO: this should really be eliminated and controlled by .go-version
+   - name: &quot;golang: upstream version&quot;
+<span class="line-removed">-    version: 1.25.5</span>
+<span class="line-added">+    version: 1.25.6</span>
+     refPaths:
+     - path: .go-version
+     - path: staging/publishing/rules.yaml</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="staging/publishing/rules.yaml bump go to 1.25.6 for cve fixes default-go-version: 1.25.5 default-go-version: 1.25.6">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>staging/publishing/rules.yaml</h3>
+                    <div class="commit-msg">bump go to 1.25.6 for cve fixes</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#30</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (1 lines)</div>
+                    <pre><span class="line-removed">default-go-version: 1.25.5</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (1 lines)</div>
+                    <pre><span class="line-added">default-go-version: 1.25.6</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -2489,4 +2489,4 @@ rules:</span>
+       - staging/src/k8s.io/externaljwt
+ recursive-delete-patterns:
+ - &#x27;*/.gitattributes&#x27;
+<span class="line-removed">-default-go-version: 1.25.5</span>
+<span class="line-added">+default-go-version: 1.25.6</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/e2e/testing-manifests/auth/encrypt/kind.yaml merge pull request #136183 from aramase/aramase/i/fix_kms_test_136181   [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]     endpoint = [&quot;http://kind-registry:5000&quot;]   [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]     config_path = &quot;/etc/containerd/certs.d&quot;   - containerpath: /etc/containerd/certs.d     hostpath: test/e2e/testing-manifests/auth/encrypt/certs.d     readonly: true">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/e2e/testing-manifests/auth/encrypt/kind.yaml</h3>
+                    <div class="commit-msg">merge pull request #136183 from aramase/aramase/i/fix_kms_test_136181</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#31</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (2 lines)</div>
+                    <pre><span class="line-removed">  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]</span>
+<span class="line-removed">    endpoint = [&quot;http://kind-registry:5000&quot;]</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (5 lines)</div>
+                    <pre><span class="line-added">  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]</span>
+<span class="line-added">    config_path = &quot;/etc/containerd/certs.d&quot;</span>
+<span class="line-added">  - containerPath: /etc/containerd/certs.d</span>
+<span class="line-added">    hostPath: test/e2e/testing-manifests/auth/encrypt/certs.d</span>
+<span class="line-added">    readOnly: true</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -3,11 +3,14 @@ apiVersion: kind.x-k8s.io/v1alpha4</span>
+ # this containerd config patch sets the registry to the local registry where we push mock kms provider
+ containerdConfigPatches:
+ - |-
+<span class="line-removed">-  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]</span>
+<span class="line-removed">-    endpoint = [&quot;http://kind-registry:5000&quot;]</span>
+<span class="line-added">+  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]</span>
+<span class="line-added">+    config_path = &quot;/etc/containerd/certs.d&quot;</span>
+ nodes:
+ - role: control-plane
+   extraMounts:
+<span class="line-added">+  - containerPath: /etc/containerd/certs.d</span>
+<span class="line-added">+    hostPath: test/e2e/testing-manifests/auth/encrypt/certs.d</span>
+<span class="line-added">+    readOnly: true</span>
+   - containerPath: /etc/kubernetes/encryption-config.yaml
+     hostPath: test/e2e/testing-manifests/auth/encrypt/encryption-config.yaml
+     readOnly: true</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="delta-card collapsed" data-search="test/e2e/testing-manifests/auth/encrypt/kind.yaml test: fix kind local registry config for kms ci jobs   [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]     endpoint = [&quot;http://kind-registry:5000&quot;]   [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]     config_path = &quot;/etc/containerd/certs.d&quot;   - containerpath: /etc/containerd/certs.d     hostpath: test/e2e/testing-manifests/auth/encrypt/certs.d     readonly: true">
+            <div class="delta-header" onclick="toggleCard(this.parentElement)">
+                <div>
+                    <h3>test/e2e/testing-manifests/auth/encrypt/kind.yaml</h3>
+                    <div class="commit-msg">test: fix kind local registry config for kms ci jobs</div>
+                </div>
+                <div class="meta">
+                    <span class="index">#32</span>
+                    <span class="toggle">▼</span>
+                </div>
+            </div>
+            <div class="delta-content">
+                <div class="column before">
+                    <div class="column-header">❌ BEFORE (2 lines)</div>
+                    <pre><span class="line-removed">  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]</span>
+<span class="line-removed">    endpoint = [&quot;http://kind-registry:5000&quot;]</span></pre>
+                </div>
+                <div class="column after">
+                    <div class="column-header">✅ AFTER (5 lines)</div>
+                    <pre><span class="line-added">  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]</span>
+<span class="line-added">    config_path = &quot;/etc/containerd/certs.d&quot;</span>
+<span class="line-added">  - containerPath: /etc/containerd/certs.d</span>
+<span class="line-added">    hostPath: test/e2e/testing-manifests/auth/encrypt/certs.d</span>
+<span class="line-added">    readOnly: true</span></pre>
+                </div>
+                <div class="column diff">
+                    <div class="column-header">📝 DIFF</div>
+                    <pre><span style="color:#1565c0;font-weight:bold">@@ -3,11 +3,14 @@ apiVersion: kind.x-k8s.io/v1alpha4</span>
+ # this containerd config patch sets the registry to the local registry where we push mock kms provider
+ containerdConfigPatches:
+ - |-
+<span class="line-removed">-  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;localhost:5000&quot;]</span>
+<span class="line-removed">-    endpoint = [&quot;http://kind-registry:5000&quot;]</span>
+<span class="line-added">+  [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]</span>
+<span class="line-added">+    config_path = &quot;/etc/containerd/certs.d&quot;</span>
+ nodes:
+ - role: control-plane
+   extraMounts:
+<span class="line-added">+  - containerPath: /etc/containerd/certs.d</span>
+<span class="line-added">+    hostPath: test/e2e/testing-manifests/auth/encrypt/certs.d</span>
+<span class="line-added">+    readOnly: true</span>
+   - containerPath: /etc/kubernetes/encryption-config.yaml
+     hostPath: test/e2e/testing-manifests/auth/encrypt/encryption-config.yaml
+     readOnly: true</pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="footer">
+        Generated from 32 security deltas
+    </div>
+    
+    <script>
+        // Toggle individual card
+        function toggleCard(card) {
+            card.classList.toggle('collapsed');
+        }
+        
+        // Expand all visible cards
+        function expandAll() {
+            document.querySelectorAll('.delta-card:not(.hidden)').forEach(card => {
+                card.classList.remove('collapsed');
+            });
+        }
+        
+        // Collapse all cards
+        function collapseAll() {
+            document.querySelectorAll('.delta-card').forEach(card => {
+                card.classList.add('collapsed');
+            });
+        }
+        
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const showingCount = document.getElementById('showingCount');
+        
+        searchBox.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.delta-card');
+            let visible = 0;
+            
+            cards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+                if (!query || searchData.includes(query)) {
+                    card.classList.remove('hidden');
+                    visible++;
+                    // Auto-expand matching cards when searching
+                    if (query) {
+                        card.classList.remove('collapsed');
+                    }
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            showingCount.textContent = 'Showing: ' + visible;
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Don't trigger if typing in search box
+            if (document.activeElement === searchBox) {
+                if (e.key === 'Escape') {
+                    searchBox.value = '';
+                    searchBox.dispatchEvent(new Event('input'));
+                    searchBox.blur();
+                }
+                return;
+            }
+            
+            switch(e.key) {
+                case '/':
+                    e.preventDefault();
+                    searchBox.focus();
+                    break;
+                case 'e':
+                case 'E':
+                    expandAll();
+                    break;
+                case 'c':
+                case 'C':
+                    collapseAll();
+                    break;
+                case 'Escape':
+                    searchBox.value = '';
+                    searchBox.dispatchEvent(new Event('input'));
+                    break;
+            }
+        });
+        
+        // Export visible entries as JSON
+        function exportVisible() {
+            const visibleCards = document.querySelectorAll('.delta-card:not(.hidden)');
+            const data = [];
+            
+            visibleCards.forEach((card, index) => {
+                const header = card.querySelector('h3').textContent;
+                const commit = card.querySelector('.commit-msg').textContent;
+                data.push({
+                    index: index + 1,
+                    file: header,
+                    commit: commit
+                });
+            });
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'filtered_deltas.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
