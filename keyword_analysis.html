@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyword Analysis Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1, h2 { color: #333; }
+        .stats { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .stat-box { display: inline-block; background: #e3f2fd; padding: 15px 25px; margin: 5px; border-radius: 8px; }
+        .stat-box.security { background: #ffebee; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #1565c0; }
+        .stat-box.security .stat-value { color: #c62828; }
+        .stat-label { font-size: 12px; color: #666; }
+        table { border-collapse: collapse; width: 100%; background: white; }
+        th { background: #1565c0; color: white; padding: 10px; text-align: left; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f5f5f5; }
+        .charts { display: flex; flex-wrap: wrap; gap: 20px; }
+        .chart { background: white; padding: 15px; border-radius: 8px; }
+        .chart img { max-width: 100%; height: auto; }
+        .columns { display: flex; gap: 20px; }
+        .column { flex: 1; }
+    </style>
+</head>
+<body>
+    <h1>📊 Commit Message Keyword Analysis</h1>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-value">20,344</div>
+            <div class="stat-label">Total Messages</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">323,571</div>
+            <div class="stat-label">Total Words</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">4,819</div>
+            <div class="stat-label">Unique Words</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">4,589</div>
+            <div class="stat-label">After Stop Words Removed</div>
+        </div>
+        <div class="stat-box security">
+            <div class="stat-value">14,379</div>
+            <div class="stat-label">Security Keyword Occurrences</div>
+        </div>
+    </div>
+
+    <div class="columns">
+        <div class="column">
+            <h2>🔤 Top Keywords (All)</h2>
+            <p>Red = security-related</p>
+            <table>
+                <tr><th>#</th><th>Word</th><th>Count</th></tr>
+                <tr><td>1</td><td style="">podsecurity</td><td>16193</td></tr><tr><td>2</td><td style="">0x20</td><td>11100</td></tr><tr><td>3</td><td style="">check</td><td>7842</td></tr><tr><td>4</td><td style="">liggitt</td><td>7416</td></tr><tr><td>5</td><td style="">fixture</td><td>5936</td></tr><tr><td>6</td><td style="">regenerate</td><td>3877</td></tr><tr><td>7</td><td style="">message</td><td>3842</td></tr><tr><td>8</td><td style="">103558</td><td>3811</td></tr><tr><td>9</td><td style="">podsecurity-check-cleanup</td><td>3811</td></tr><tr><td>10</td><td style="">cleanups</td><td>3811</td></tr><tr><td>11</td><td style="">baseline</td><td>3402</td></tr><tr><td>12</td><td style="">fixtures</td><td>2928</td></tr><tr><td>13</td><td style="">api</td><td>2732</td></tr><tr><td>14</td><td style="">admission</td><td>2564</td></tr><tr><td>15</td><td style="color: #c62828; font-weight: bold;">restricted</td><td>2537</td></tr><tr><td>16</td><td style="color: #c62828; font-weight: bold;">pod</td><td>2497</td></tr><tr><td>17</td><td style="color: #c62828; font-weight: bold;">security</td><td>2239</td></tr><tr><td>18</td><td style="">data</td><td>2210</td></tr><tr><td>19</td><td style="">103099</td><td>2177</td></tr><tr><td>20</td><td style="">signed-off-by</td><td>2152</td></tr><tr><td>21</td><td style="">seccomp</td><td>1962</td></tr><tr><td>22</td><td style="">policy</td><td>1941</td></tr><tr><td>23</td><td style="">compatibility</td><td>1712</td></tr><tr><td>24</td><td style="color: #c62828; font-weight: bold;">fix</td><td>1685</td></tr><tr><td>25</td><td style="">type</td><td>1645</td></tr><tr><td>26</td><td style="">selinuxoptions</td><td>1604</td></tr><tr><td>27</td><td style="color: #c62828; font-weight: bold;">ports</td><td>1437</td></tr><tr><td>28</td><td style="">go</td><td>1335</td></tr><tr><td>29</td><td style="">checks</td><td>1322</td></tr><tr><td>30</td><td style="">feature</td><td>1127</td></tr><tr><td>31</td><td style="">generated</td><td>1034</td></tr><tr><td>32</td><td style="">0x65</td><td>1000</td></tr><tr><td>33</td><td style="">volume</td><td>998</td></tr><tr><td>34</td><td style="color: #c62828; font-weight: bold;">container</td><td>913</td></tr><tr><td>35</td><td style="">0x0a</td><td>900</td></tr><tr><td>36</td><td style="">ipv4</td><td>877</td></tr><tr><td>37</td><td style="">implement</td><td>860</td></tr><tr><td>38</td><td style="">24</td><td>848</td></tr><tr><td>39</td><td style="">field</td><td>822</td></tr><tr><td>40</td><td style="">sejr</td><td>805</td></tr><tr><td>41</td><td style="">host</td><td>754</td></tr><tr><td>42</td><td style="">103341</td><td>654</td></tr><tr><td>43</td><td style="">ip</td><td>634</td></tr><tr><td>44</td><td style="">capabilities</td><td>629</td></tr><tr><td>45</td><td style="">identical</td><td>624</td></tr><tr><td>46</td><td style="">gate</td><td>623</td></tr><tr><td>47</td><td style="">net</td><td>615</td></tr><tr><td>48</td><td style="">0x6c</td><td>600</td></tr><tr><td>49</td><td style="">default</td><td>598</td></tr><tr><td>50</td><td style="color: #c62828; font-weight: bold;">k8s</td><td>581</td></tr>
+            </table>
+        </div>
+        <div class="column">
+            <h2>🔒 Security Keywords Only</h2>
+            <p>Keywords relevant to Stream 2 research</p>
+            <table>
+                <tr><th>#</th><th>Word</th><th>Count</th></tr>
+                <tr><td>1</td><td style="color: #c62828; font-weight: bold;">restricted</td><td>2537</td></tr><tr><td>2</td><td style="color: #c62828; font-weight: bold;">pod</td><td>2497</td></tr><tr><td>3</td><td style="color: #c62828; font-weight: bold;">security</td><td>2239</td></tr><tr><td>4</td><td style="color: #c62828; font-weight: bold;">fix</td><td>1685</td></tr><tr><td>5</td><td style="color: #c62828; font-weight: bold;">ports</td><td>1437</td></tr><tr><td>6</td><td style="color: #c62828; font-weight: bold;">container</td><td>913</td></tr><tr><td>7</td><td style="color: #c62828; font-weight: bold;">k8s</td><td>581</td></tr><tr><td>8</td><td style="color: #c62828; font-weight: bold;">safe</td><td>351</td></tr><tr><td>9</td><td style="color: #c62828; font-weight: bold;">privileged</td><td>280</td></tr><tr><td>10</td><td style="color: #c62828; font-weight: bold;">patch</td><td>266</td></tr><tr><td>11</td><td style="color: #c62828; font-weight: bold;">validation</td><td>216</td></tr><tr><td>12</td><td style="color: #c62828; font-weight: bold;">admin</td><td>161</td></tr><tr><td>13</td><td style="color: #c62828; font-weight: bold;">allow</td><td>159</td></tr><tr><td>14</td><td style="color: #c62828; font-weight: bold;">deny</td><td>150</td></tr><tr><td>15</td><td style="color: #c62828; font-weight: bold;">port</td><td>110</td></tr><tr><td>16</td><td style="color: #c62828; font-weight: bold;">rbac</td><td>97</td></tr><tr><td>17</td><td style="color: #c62828; font-weight: bold;">kubernetes</td><td>84</td></tr><tr><td>18</td><td style="color: #c62828; font-weight: bold;">network</td><td>82</td></tr><tr><td>19</td><td style="color: #c62828; font-weight: bold;">logging</td><td>53</td></tr><tr><td>20</td><td style="color: #c62828; font-weight: bold;">permissions</td><td>40</td></tr><tr><td>21</td><td style="color: #c62828; font-weight: bold;">credential</td><td>40</td></tr><tr><td>22</td><td style="color: #c62828; font-weight: bold;">unsafe</td><td>40</td></tr><tr><td>23</td><td style="color: #c62828; font-weight: bold;">secret</td><td>35</td></tr><tr><td>24</td><td style="color: #c62828; font-weight: bold;">token</td><td>33</td></tr><tr><td>25</td><td style="color: #c62828; font-weight: bold;">secrets</td><td>27</td></tr><tr><td>26</td><td style="color: #c62828; font-weight: bold;">encryption</td><td>25</td></tr><tr><td>27</td><td style="color: #c62828; font-weight: bold;">tokens</td><td>22</td></tr><tr><td>28</td><td style="color: #c62828; font-weight: bold;">access</td><td>22</td></tr><tr><td>29</td><td style="color: #c62828; font-weight: bold;">authentication</td><td>18</td></tr><tr><td>30</td><td style="color: #c62828; font-weight: bold;">cve</td><td>18</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <h2>📈 Visualizations</h2>
+    <p>Charts saved as PNG files in the same directory.</p>
+
+</body>
+</html>

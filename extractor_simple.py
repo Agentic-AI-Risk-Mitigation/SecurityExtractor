@@ -24,7 +24,12 @@ print(f"Reset Time (UTC): {core.reset}")
 repo = g.get_repo("kubernetes/kubernetes")
 
 # Define "Security Posture" signals 
-IAC_KEYWORDS = ["security", "fix", "vuln", "rbac", "secret", "privileged"]
+IAC_KEYWORDS = ["security",
+                "fix",
+                "vuln",
+                "rbac",
+                "secret",
+                "privileged"]
 
 # =============================================================================
 # Main Execution

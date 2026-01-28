@@ -1,3 +1,38 @@
+import subprocess
+import json
+import tempfile
+import os
+
+def check_security_posture(code_content):
+    """
+    Analyzes code content using Semgrep to count security violations.
+    """
+    # Create a temporary file because Semgrep prefers file paths over raw strings
+    with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode='w') as tmp:
+        tmp.write(code_content)
+        tmp_path = tmp.name
+
+    try:
+        # Run Semgrep using the official Kubernetes security policy
+        result = subprocess.run(
+            ["semgrep", "--config", "p/kubernetes", "--json", tmp_path],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode != 0:
+            return 0  # Return 0 if Semgrep fails to run
+
+        data = json.loads(result.stdout)
+        return len(data.get("results", []))
+    except Exception as e:
+        print(f"Semgrep Error: {e}")
+        return 0
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
 def extract_security_deltas(repo, IAC_KEYWORDS, limit=5):
     dataset = []
     commits = repo.get_commits()
@@ -33,7 +68,71 @@ def extract_security_deltas(repo, IAC_KEYWORDS, limit=5):
             count += 1
             if count >= limit: break
     return dataset
-   
+
+
+def semextract_security_deltas(repo, IAC_KEYWORDS, limit=5):
+    """
+    Enhanced extractor that uses Semgrep to quantify security posture changes.
+    """
+    dataset = []
+    # We use a smaller per-page limit to be gentle on the GitHub API
+    commits = repo.get_commits()
+
+    count = 0
+    for commit in commits:
+        msg = commit.commit.message.lower()
+
+        # Initial filter using keywords (Intent detection)
+        if any(key in msg for key in IAC_KEYWORDS):
+            print(f"🔍 Analyzing security delta in commit: {commit.sha[:7]}")
+
+            parent = commit.parents[0] if commit.parents else None
+            if not parent: continue
+
+            for file in commit.files:
+                # Target Infrastructure-as-Code files
+                if file.filename.endswith(('.yaml', '.yml', 'Dockerfile')):
+                    try:
+                        # Fetch the raw code for both states
+                        vulnerable_code = repo.get_contents(file.filename, ref=parent.sha).decoded_content.decode()
+                        fixed_code = repo.get_contents(file.filename, ref=commit.sha).decoded_content.decode()
+
+                        # --- SEMANTIC ANALYSIS START ---
+                        # Use our library function to count findings
+                        before_vuln_count = check_security_posture(vulnerable_code)
+                        after_vuln_count = check_security_posture(fixed_code)
+
+                        # Determine if the security posture actually changed
+                        delta = after_vuln_count - before_vuln_count
+
+                        if delta < 0:
+                            status = "IMPROVED (Fix)"
+                        elif delta > 0:
+                            status = "REGRESSED (Vulnerability Introduced)"
+                        else:
+                            status = "NEUTRAL (No semantic change)"
+                        # --- SEMANTIC ANALYSIS END ---
+
+                        dataset.append({
+                            "commit_sha": commit.sha,
+                            "commit_message": msg,
+                            "file": file.filename,
+                            "before_vulns": before_vuln_count,
+                            "after_vulns": after_vuln_count,
+                            "posture_change": status,
+                            "before_code": vulnerable_code,
+                            "after_code": fixed_code,
+                            "diff": file.patch
+                        })
+                        print(f"   ✅ {file.filename}: {status} ({before_vuln_count} -> {after_vuln_count})")
+
+                    except Exception as e:
+                        print(f"   ⚠️ Error fetching delta for {file.filename}: {e}")
+
+            count += 1
+            if count >= limit: break
+
+    return dataset
     
 def format_deltas(json, 
                   jsonl_file="security_deltas.jsonl"):
