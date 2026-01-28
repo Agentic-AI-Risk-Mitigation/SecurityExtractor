@@ -1,3 +1,4 @@
+# Initial script to fetch security information.
 import os
 import json
 from github import Github
