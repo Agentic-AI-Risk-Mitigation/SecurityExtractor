@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-offline_funclib.py - Offline Git Repository Analysis Functions
+offline_extractor.py - Offline Git Repository Analysis Functions
 ==============================================================
 
 For large repositories (10,000+ commits), clone locally and analyze offline.
