@@ -58,6 +58,7 @@ class GitHubPagesPublisher:
         )
         self.branch = str(config.get("branch", "main"))
         self.viewer_max_lines = int(config.get("viewer_max_lines", 1000))
+        self.viewer_max_line_chars = int(config.get("viewer_max_line_chars", 4000))
 
     def publish(self, output_dir: str | Path) -> Dict[str, Any]:
         """Copy selected outputs to Pages dir and optionally commit/push."""
@@ -181,7 +182,11 @@ class GitHubPagesPublisher:
     def _apply_viewer_configuration(self, output_path: Path) -> Dict[str, Any]:
         """Apply configured line-limit behavior to pipeline overview/viewer pages."""
         if self.viewer_max_lines <= 0:
-            return {"viewer_max_lines": self.viewer_max_lines, "updated_files": 0}
+            return {
+                "viewer_max_lines": self.viewer_max_lines,
+                "viewer_max_line_chars": self.viewer_max_line_chars,
+                "updated_files": 0,
+            }
 
         updated_files = 0
 
@@ -202,7 +207,11 @@ class GitHubPagesPublisher:
                 if self._rewrite_viewer_file(viewer_file, source_path):
                     updated_files += 1
 
-        return {"viewer_max_lines": self.viewer_max_lines, "updated_files": updated_files}
+        return {
+            "viewer_max_lines": self.viewer_max_lines,
+            "viewer_max_line_chars": self.viewer_max_line_chars,
+            "updated_files": updated_files,
+        }
 
     def _rewrite_overview_limit_text(self, html_path: Path) -> bool:
         text = html_path.read_text(encoding="utf-8", errors="replace")
@@ -238,7 +247,14 @@ class GitHubPagesPublisher:
         ).splitlines()
         total_lines = len(source_lines)
         preview_lines = source_lines[: self.viewer_max_lines]
-        preview_text = "\n".join(html.escape(line) for line in preview_lines)
+        trimmed_line_count = 0
+        rendered_lines: List[str] = []
+        for line in preview_lines:
+            if len(line) > self.viewer_max_line_chars:
+                trimmed_line_count += 1
+                line = f"{line[: self.viewer_max_line_chars]} ... [line truncated]"
+            rendered_lines.append(html.escape(line))
+        preview_text = "\n".join(rendered_lines)
 
         page = viewer_file.read_text(encoding="utf-8", errors="replace")
         updated = page
@@ -262,10 +278,10 @@ class GitHubPagesPublisher:
             return False
 
         updated = re.sub(
-            r'\s*<div class="truncation-notice">\(Truncated at .*? lines &mdash; full file has .*? lines\)</div>',
+            r'\s*<div class="truncation-notice">\((Truncated at .*? lines(?:\s*&mdash;\s*|\s*-\s*)full file has .*? lines|Trimmed .*?)\)</div>',
             "",
             updated,
-            count=1,
+            count=0,
             flags=re.S,
         )
         if total_lines > self.viewer_max_lines:
@@ -273,6 +289,14 @@ class GitHubPagesPublisher:
                 f"\n    <div class=\"truncation-notice\">"
                 f"(Truncated at {self.viewer_max_lines} lines &mdash; "
                 f"full file has {total_lines} lines)"
+                f"</div>"
+            )
+            updated = updated.replace("</code></pre>", f"</code></pre>{notice}", 1)
+        if trimmed_line_count > 0:
+            notice = (
+                f"\n    <div class=\"truncation-notice\">"
+                f"(Trimmed {trimmed_line_count} long lines to "
+                f"{self.viewer_max_line_chars} characters each)"
                 f"</div>"
             )
             updated = updated.replace("</code></pre>", f"</code></pre>{notice}", 1)
@@ -327,13 +351,29 @@ class GitHubPagesPublisher:
         return {"committed": True, "pushed": pushed}
 
     def _run_git(self, cmd: List[str]) -> None:
-        subprocess.run(
-            cmd,
-            cwd=self.repo_root,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        try:
+            proc = subprocess.run(
+                cmd,
+                cwd=self.repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            if proc.stdout.strip():
+                logger.debug("git stdout (%s): %s", " ".join(cmd), proc.stdout.strip())
+            if proc.stderr.strip():
+                logger.debug("git stderr (%s): %s", " ".join(cmd), proc.stderr.strip())
+        except subprocess.CalledProcessError as exc:
+            stdout = (exc.stdout or "").strip()
+            stderr = (exc.stderr or "").strip()
+            logger.error(
+                "Git command failed (%s), rc=%s\nstdout:\n%s\nstderr:\n%s",
+                " ".join(cmd),
+                exc.returncode,
+                stdout or "<empty>",
+                stderr or "<empty>",
+            )
+            raise
 
     def _run_git_quiet(self, cmd: List[str]) -> int:
         proc = subprocess.run(

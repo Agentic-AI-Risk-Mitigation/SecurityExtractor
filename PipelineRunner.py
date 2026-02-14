@@ -61,7 +61,7 @@ BRANCH = "master"
 
 # --- Extraction ---
 SECURITY_CONFIG_PATH = "config/security_config.yaml"
-EXTRACTION_LIMIT = 100  # max security commits to scan
+EXTRACTION_LIMIT = 1500  # max security commits to scan
 IAC_ONLY = True  # only extract deltas with IaC files
 IAC_PATHS_ONLY = False  # restrict to known IaC directories
 VERBOSE = True  # print per-commit progress
@@ -103,6 +103,7 @@ GHPAGES_INCLUDE_FILES = [
 ]
 GHPAGES_INCLUDE_DIRS = ["docs"]
 GHPAGES_VIEWER_MAX_LINES = 1000
+GHPAGES_VIEWER_MAX_LINE_CHARS = 4000
 GHPAGES_STRICT_REQUIRED_ARTIFACTS = True
 GHPAGES_REQUIRED_ARTIFACTS = [
     "pipeline_overview.html",
@@ -192,6 +193,7 @@ def _build_pipeline_cfg() -> dict:
             "include_files": GHPAGES_INCLUDE_FILES,
             "include_dirs": GHPAGES_INCLUDE_DIRS,
             "viewer_max_lines": GHPAGES_VIEWER_MAX_LINES,
+            "viewer_max_line_chars": GHPAGES_VIEWER_MAX_LINE_CHARS,
             "strict_required_artifacts": GHPAGES_STRICT_REQUIRED_ARTIFACTS,
             "required_artifacts": GHPAGES_REQUIRED_ARTIFACTS,
             "auto_commit": GHPAGES_AUTO_COMMIT,
@@ -623,6 +625,9 @@ def main() -> None:
         overview_result = PipelineOverviewGenerator(
             repo_root=BASE_DIR,
             viewer_max_lines=int(gh_pages_cfg.get("viewer_max_lines", 1000)),
+            viewer_max_line_chars=int(
+                gh_pages_cfg.get("viewer_max_line_chars", 4000)
+            ),
         ).generate(output_dir=output_dir)
 
         # ---------------------------------------------------------

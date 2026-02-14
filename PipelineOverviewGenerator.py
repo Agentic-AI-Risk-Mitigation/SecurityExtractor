@@ -127,9 +127,15 @@ class PipelineOverviewGenerator:
         },
     ]
 
-    def __init__(self, repo_root: str | Path, viewer_max_lines: int = 1000) -> None:
+    def __init__(
+        self,
+        repo_root: str | Path,
+        viewer_max_lines: int = 1000,
+        viewer_max_line_chars: int = 4000,
+    ) -> None:
         self.repo_root = Path(repo_root)
         self.viewer_max_lines = max(1, int(viewer_max_lines))
+        self.viewer_max_line_chars = max(128, int(viewer_max_line_chars))
 
     def generate(self, output_dir: str | Path) -> Dict[str, object]:
         """Generate overview + docs viewer pages from current run artifacts."""
@@ -258,12 +264,24 @@ class PipelineOverviewGenerator:
         lines = raw.splitlines()
         total_lines = len(lines)
         shown_lines = lines[: self.viewer_max_lines]
-        code = "\n".join(html.escape(line) for line in shown_lines)
+        rendered_lines: List[str] = []
+        trimmed_line_count = 0
+        for line in shown_lines:
+            if len(line) > self.viewer_max_line_chars:
+                trimmed_line_count += 1
+                line = f"{line[: self.viewer_max_line_chars]} ... [line truncated]"
+            rendered_lines.append(html.escape(line))
+        code = "\n".join(rendered_lines)
         truncation = ""
         if total_lines > self.viewer_max_lines:
             truncation = (
                 f'<div class="truncation-notice">(Truncated at {self.viewer_max_lines} '
                 f"lines - full file has {total_lines} lines)</div>"
+            )
+        if trimmed_line_count > 0:
+            truncation += (
+                f'<div class="truncation-notice">(Trimmed {trimmed_line_count} long lines '
+                f"to {self.viewer_max_line_chars} characters each)</div>"
             )
 
         doc = f"""<!DOCTYPE html>
@@ -529,7 +547,7 @@ class PipelineOverviewGenerator:
 
 <div class="section" id="results-section">
   <h2 class="section-title">Result Files</h2>
-  <p class="section-desc">JSON and JSONL outputs from each pipeline stage. Viewer pages are capped to {self.viewer_max_lines} lines.</p>
+  <p class="section-desc">JSON and JSONL outputs from each pipeline stage. Viewer pages are capped to {self.viewer_max_lines} lines and {self.viewer_max_line_chars} characters per line.</p>
   <div class="card-grid">{result_cards_html}</div>
 </div>
 
