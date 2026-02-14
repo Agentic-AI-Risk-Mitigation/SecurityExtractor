@@ -110,7 +110,22 @@
   {
     &quot;commit_sha&quot;: &quot;aa4159c2d2dde5d2e9929974884f12608d7d2d3d&quot;,
     &quot;file_path&quot;: &quot;vendor/github.com/prometheus/procfs/.golangci.yml&quot;,
-    &quot;commit_message&quot;: &quot;Bump prometheus/common to v0.67.5 and prometheus/procfs to v0.19.2\n\nprometheus/common v0.66.1 -&gt; v0.67.5:\n- Breaking: TextParser must now use NewTextParser() constructor\n- Float/gauge histograms support in expfmt\n- Fixed panic in tlsRoundTripper when CA file missing\n- https://github.com/prometheus/common/compare/v0.66.1...v0.67.5\n\nprometheus/procfs v0.16.1 -&gt; v0.19.2:\n- New: process shared memory, netfilter queue, hung_task metrics\n- Enhanced meminfo (zswap, hugetlb fields)\n- MD raid component devices exposed\n- Fixed ZswappedBytes calculation\n- https://github.com/prometheus/procfs/compare/v0.16.1...v0.19.2\n\nSigned-off-by: Davanum Srinivas &lt;davanum@gmail.com&gt;&quot;,
+    &quot;commit_message&quot;: &quot;Bump prometheus/common to v0.67.5 and prometheus/procfs to v0.19.2
+
+prometheus/common v0.66.1 -&gt; v0.67.5:
+- Breaking: TextParser must now use NewTextParser() constructor
+- Float/gauge histograms support in expfmt
+- Fixed panic in tlsRoundTripper when CA file missing
+- https://github.com/prometheus/common/compare/v0.66.1...v0.67.5
+
+prometheus/procfs v0.16.1 -&gt; v0.19.2:
+- New: process shared memory, netfilter queue, hung_task metrics
+- Enhanced meminfo (zswap, hugetlb fields)
+- MD raid component devices exposed
+- Fixed ZswappedBytes calculation
+- https://github.com/prometheus/procfs/compare/v0.16.1...v0.19.2
+
+Signed-off-by: Davanum Srinivas &lt;davanum@gmail.com&gt;&quot;,
     &quot;commit_date&quot;: &quot;2026-02-04T03:25:04&quot;,
     &quot;author&quot;: &quot;Davanum Srinivas&quot;,
     &quot;keywords_matched&quot;: [
@@ -137,7 +152,9 @@
   {
     &quot;commit_sha&quot;: &quot;5245587ff79f9e3775606e497a36924bedcd11ee&quot;,
     &quot;file_path&quot;: &quot;test/compatibility_lifecycle/reference/versioned_feature_list.yaml&quot;,
-    &quot;commit_message&quot;: &quot;Merge pull request #136596 from aramase/aramase/f/kep_5538_stable_impl\n\nMark CSIServiceAccountTokenSecrets feature gate as GA&quot;,
+    &quot;commit_message&quot;: &quot;Merge pull request #136596 from aramase/aramase/f/kep_5538_stable_impl
+
+Mark CSIServiceAccountTokenSecrets feature gate as GA&quot;,
     &quot;commit_date&quot;: &quot;2026-01-28T23:31:48&quot;,
     &quot;author&quot;: &quot;Kubernetes Prow Robot&quot;,
     &quot;keywords_matched&quot;: [
@@ -163,7 +180,9 @@
   {
     &quot;commit_sha&quot;: &quot;d6d215821a8f1572cae80de0198650766e6860e7&quot;,
     &quot;file_path&quot;: &quot;test/compatibility_lifecycle/reference/versioned_feature_list.yaml&quot;,
-    &quot;commit_message&quot;: &quot;Mark CSIServiceAccountTokenSecrets feature gate as GA\n\nSigned-off-by: Anish Ramasekar &lt;anish.ramasekar@gmail.com&gt;&quot;,
+    &quot;commit_message&quot;: &quot;Mark CSIServiceAccountTokenSecrets feature gate as GA
+
+Signed-off-by: Anish Ramasekar &lt;anish.ramasekar@gmail.com&gt;&quot;,
     &quot;commit_date&quot;: &quot;2026-01-28T21:41:34&quot;,
     &quot;author&quot;: &quot;Anish Ramasekar&quot;,
     &quot;keywords_matched&quot;: [
@@ -189,7 +208,9 @@
   {
     &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
     &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml&quot;,
-    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1\n\nIt fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
+    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
     &quot;commit_date&quot;: &quot;2026-02-10T16:33:26&quot;,
     &quot;author&quot;: &quot;Jan Safranek&quot;,
     &quot;keywords_matched&quot;: [
@@ -306,8 +327,813 @@
           &quot;AC7&quot;
         ]
       },
-</code></pre>
-    <div class="truncation-notice">(Truncated at 200 lines &mdash; full file has 1388 lines)</div>
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_13&quot;,
+        &quot;title&quot;: &quot;Memory limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_40&quot;,
+        &quot;title&quot;: &quot;Containers should run as a high UID to avoid host conflict&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_10&quot;,
+        &quot;title&quot;: &quot;CPU requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_16&quot;,
+        &quot;title&quot;: &quot;Container should not be privileged&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_22&quot;,
+        &quot;title&quot;: &quot;Use read-only filesystem for containers where possible&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_9&quot;,
+        &quot;title&quot;: &quot;Readiness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_28&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with the NET_RAW capability&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_29&quot;,
+        &quot;title&quot;: &quot;Apply security context to your pods and containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_30&quot;,
+        &quot;title&quot;: &quot;Apply security context to your containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_38&quot;,
+        &quot;title&quot;: &quot;Ensure that Service Account Tokens are only mounted where necessary&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_23&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of root containers&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_43&quot;,
+        &quot;title&quot;: &quot;Image should use digest&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_11&quot;,
+        &quot;title&quot;: &quot;CPU limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV2_K8S_6&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of pods which lack an associated NetworkPolicy&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      }
+    ],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;AC9&quot;,
+    &quot;composite_score&quot;: 0.05,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;labels_after&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
+    &quot;commit_date&quot;: &quot;2026-02-10T16:33:26&quot;,
+    &quot;author&quot;: &quot;Jan Safranek&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;fix&quot;
+    ],
+    &quot;checkov_before_count&quot;: 27,
+    &quot;checkov_after_count&quot;: 27,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 3,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 122,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 139,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 156,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 173,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 190,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_37&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with capabilities assigned&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_31&quot;,
+        &quot;title&quot;: &quot;Ensure that the seccomp profile is set to docker/default or runtime/default&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_8&quot;,
+        &quot;title&quot;: &quot;Liveness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_12&quot;,
+        &quot;title&quot;: &quot;Memory requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_20&quot;,
+        &quot;title&quot;: &quot;Containers should not run with allowPrivilegeEscalation&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_15&quot;,
+        &quot;title&quot;: &quot;Image Pull Policy should be Always&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC7&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_13&quot;,
+        &quot;title&quot;: &quot;Memory limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_40&quot;,
+        &quot;title&quot;: &quot;Containers should run as a high UID to avoid host conflict&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_10&quot;,
+        &quot;title&quot;: &quot;CPU requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_16&quot;,
+        &quot;title&quot;: &quot;Container should not be privileged&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_22&quot;,
+        &quot;title&quot;: &quot;Use read-only filesystem for containers where possible&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_9&quot;,
+        &quot;title&quot;: &quot;Readiness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_28&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with the NET_RAW capability&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_29&quot;,
+        &quot;title&quot;: &quot;Apply security context to your pods and containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_30&quot;,
+        &quot;title&quot;: &quot;Apply security context to your containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_38&quot;,
+        &quot;title&quot;: &quot;Ensure that Service Account Tokens are only mounted where necessary&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_23&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of root containers&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_43&quot;,
+        &quot;title&quot;: &quot;Image should use digest&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_11&quot;,
+        &quot;title&quot;: &quot;CPU limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV2_K8S_6&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of pods which lack an associated NetworkPolicy&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 207,
+        &quot;attack_classes&quot;: []
+      }
+    ],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;AC9&quot;,
+    &quot;composite_score&quot;: 0.05,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;labels_after&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
+    &quot;commit_date&quot;: &quot;2026-02-10T16:33:26&quot;,
+    &quot;author&quot;: &quot;Jan Safranek&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;fix&quot;
+    ],
+    &quot;checkov_before_count&quot;: 21,
+    &quot;checkov_after_count&quot;: 21,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_37&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with capabilities assigned&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_31&quot;,
+        &quot;title&quot;: &quot;Ensure that the seccomp profile is set to docker/default or runtime/default&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_8&quot;,
+        &quot;title&quot;: &quot;Liveness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_12&quot;,
+        &quot;title&quot;: &quot;Memory requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_20&quot;,
+        &quot;title&quot;: &quot;Containers should not run with allowPrivilegeEscalation&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_15&quot;,
+        &quot;title&quot;: &quot;Image Pull Policy should be Always&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC7&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_13&quot;,
+        &quot;title&quot;: &quot;Memory limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_40&quot;,
+        &quot;title&quot;: &quot;Containers should run as a high UID to avoid host conflict&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_10&quot;,
+        &quot;title&quot;: &quot;CPU requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_16&quot;,
+        &quot;title&quot;: &quot;Container should not be privileged&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_22&quot;,
+        &quot;title&quot;: &quot;Use read-only filesystem for containers where possible&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_9&quot;,
+        &quot;title&quot;: &quot;Readiness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_28&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with the NET_RAW capability&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_29&quot;,
+        &quot;title&quot;: &quot;Apply security context to your pods and containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_30&quot;,
+        &quot;title&quot;: &quot;Apply security context to your containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_38&quot;,
+        &quot;title&quot;: &quot;Ensure that Service Account Tokens are only mounted where necessary&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_23&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of root containers&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_43&quot;,
+        &quot;title&quot;: &quot;Image should use digest&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_11&quot;,
+        &quot;title&quot;: &quot;CPU limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV2_K8S_6&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of pods which lack an associated NetworkPolicy&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      }
+    ],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;AC9&quot;,
+    &quot;composite_score&quot;: 0.05,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;labels_after&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
+    &quot;commit_date&quot;: &quot;2026-02-10T16:33:26&quot;,
+    &quot;author&quot;: &quot;Jan Safranek&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;fix&quot;
+    ],
+    &quot;checkov_before_count&quot;: 21,
+    &quot;checkov_after_count&quot;: 21,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_37&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with capabilities assigned&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_31&quot;,
+        &quot;title&quot;: &quot;Ensure that the seccomp profile is set to docker/default or runtime/default&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_8&quot;,
+        &quot;title&quot;: &quot;Liveness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_12&quot;,
+        &quot;title&quot;: &quot;Memory requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_20&quot;,
+        &quot;title&quot;: &quot;Containers should not run with allowPrivilegeEscalation&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_15&quot;,
+        &quot;title&quot;: &quot;Image Pull Policy should be Always&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC7&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_13&quot;,
+        &quot;title&quot;: &quot;Memory limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_40&quot;,
+        &quot;title&quot;: &quot;Containers should run as a high UID to avoid host conflict&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_10&quot;,
+        &quot;title&quot;: &quot;CPU requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_16&quot;,
+        &quot;title&quot;: &quot;Container should not be privileged&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_22&quot;,
+        &quot;title&quot;: &quot;Use read-only filesystem for containers where possible&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_9&quot;,
+        &quot;title&quot;: &quot;Readiness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_28&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with the NET_RAW capability&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_29&quot;,
+        &quot;title&quot;: &quot;Apply security context to your pods and containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_30&quot;,
+        &quot;title&quot;: &quot;Apply security context to your containers&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_38&quot;,
+        &quot;title&quot;: &quot;Ensure that Service Account Tokens are only mounted where necessary&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_23&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of root containers&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_43&quot;,
+        &quot;title&quot;: &quot;Image should use digest&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_11&quot;,
+        &quot;title&quot;: &quot;CPU limits should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV2_K8S_6&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of pods which lack an associated NetworkPolicy&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 1,
+        &quot;attack_classes&quot;: []
+      }
+    ],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;AC9&quot;,
+    &quot;composite_score&quot;: 0.05,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,</code></pre>
+    <div class="truncation-notice">(Truncated at 1000 lines &mdash; full file has 1388 lines)</div>
   </div>
   <div class="footer">
     Security Extractor Pipeline &mdash; File Viewer

@@ -1,16 +1,19 @@
 {
-  "published_at": "2026-02-14T21:47:07.521371",
+  "published_at": "2026-02-14T22:02:44.658023",
   "source_output_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/output",
   "site_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs",
   "copied_files": [
-    "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs/pipeline_overview.html",
     "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs/comparison_report.html",
     "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs/git_security_deltas_report.html",
     "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs/llm_explainer_report.html"
   ],
-  "copied_dirs": [
-    "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs/docs"
+  "copied_dirs": [],
+  "missing_artifacts": [
+    "pipeline_overview.html",
+    "docs",
+    "pipeline_overview.html"
   ],
-  "missing_artifacts": [],
-  "index_source": "pipeline_overview.html"
+  "index_source": "pipeline_overview.html",
+  "viewer_max_lines": 1000,
+  "updated_files": 3
 }

@@ -252,7 +252,7 @@
     <h1>Security Posture Comparison Report</h1>
     <p class="subtitle">
         22 deltas analyzed |
-        Generated: 2026-02-14 21:47 |
+        Generated: 2026-02-14 22:02 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/comparison_results.json
     </p>
 
@@ -311,7 +311,7 @@
         </div>
     </div>
     <p class="subtitle">
-        Generated: 2026-02-14T21:47:03.640266 |
+        Generated: 2026-02-14T22:02:36.916889 |
         Snapshot: /Users/wolowskv/PycharmProjects/SecurityExtractor/data/kubernetes
     </p>
     <div><span class='badge badge-severity sev-High'>High: 4420</span> <span class='badge badge-severity sev-Low'>Low: 30</span> <span class='badge badge-severity sev-Medium'>Medium: 3068</span> <span class='badge badge-severity sev-Very High'>Very High: 1518</span></div>
@@ -323,14 +323,14 @@
     <div class="section-note">
         Status: <strong>ok</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        Generated: 2026-02-14T21:47:03.786712 |
+        Generated: 2026-02-14T22:02:37.012238 |
         Overall Posture: <strong>no_material_change</strong> |
         Items: <strong>4</strong>
     </div>
-    <p>Four CI manifest files were updated to bump the hostpath plugin image from version 1.17.0 (or 1.16.1) to 1.17.1. The changes do not introduce new security issues nor resolve existing low‑severity hardening findings, resulting in a neutral security posture.</p>
-    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No change to attack surface, trust boundaries, or data flow; the only existing finding is the use of the default namespace, which remains unchanged.</td><td>Consider moving the workload out of the default namespace to address CKV_K8S_21 and keep the image version current.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No impact on security posture; the low‑severity default‑namespace finding persists.</td><td>Migrate the resource to a dedicated namespace to remediate CKV_K8S_21 and continue tracking image updates.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The medium‑severity findings (capabilities assignment and missing seccomp profile) are unchanged, so the attack surface is not reduced.</td><td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to address CKV_K8S_37, CKV_K8S_31, and CKV_K8S_8.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>Medium‑severity hardening issues (capabilities and seccomp) persist, leaving the same risk profile.</td><td>Apply the same hardening steps as the driver: drop extra capabilities, enforce a default seccomp profile, and configure a liveness probe.</td></tr></tbody></table>
+    <p>The recent commit updates the CSI driver image versions in several test manifests. No new security findings were introduced, and existing low‑ and medium‑severity hardening issues remain unchanged, resulting in no material change to the repository’s security posture.</p>
+    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No new attack surface is introduced; however, the low‑severity hardening gap of default‑namespace usage persists.</td><td>Create and use a dedicated namespace for the CSI driver resources and migrate existing objects out of the default namespace.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>The change does not alter the attack surface; the low‑severity issue of default‑namespace usage remains.</td><td>Refactor the manifest to deploy the CSI driver into a non‑default namespace and adjust role bindings accordingly.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>Existing hardening gaps persist, potentially allowing privilege escalation or reduced isolation, but no new risk is added by the image change.</td><td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to the container definition.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The pre‑existing hardening gaps remain unchanged, keeping the same level of risk without introducing new exposure.</td><td>Apply least‑privilege capabilities, enforce a default seccomp profile, and configure a liveness probe for the mock proxy container.</td></tr></tbody></table>
     <h2>LLM Limitations</h2>
-    <ul><li>All findings are based on the provided diff and Checkov output; no additional context was available.</li></ul>
+    <ul><li>All findings are pre‑existing and unchanged by the diff; impact assessment relies on static scanner output without runtime verification.</li></ul>
 
 
     <h2>Attack Class Distribution</h2>

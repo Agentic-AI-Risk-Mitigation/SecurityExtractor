@@ -306,8 +306,20 @@ attack_classes:
     name: &quot;Availability &amp; Resilience Misconfiguration&quot;
     description: &gt;-
       Missing probes, resource limits, PodDisruptionBudgets,
-</code></pre>
-    <div class="truncation-notice">(Truncated at 200 lines &mdash; full file has 214 lines)</div>
+      or replica counts that affect availability.
+    stride:
+      - &quot;Denial of Service&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_8&quot;            # liveness probe (shared with AC9)
+      - &quot;CKV_K8S_9&quot;            # readiness probe (shared with AC9)
+      - &quot;CKV_K8S_28&quot;           # resource limits (shared with AC9)
+    example_signals:
+      - &quot;Liveness/readiness probes removed&quot;
+      - &quot;replicas set to 1 in production&quot;
+      - &quot;No PodDisruptionBudget for critical workload&quot;
+      - &quot;Resource limits removed&quot;
+    cwe_range: &quot;CWE-400, CWE-770&quot;</code></pre>
   </div>
   <div class="footer">
     Security Extractor Pipeline &mdash; File Viewer
