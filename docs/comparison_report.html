@@ -252,7 +252,7 @@
     <h1>Security Posture Comparison Report</h1>
     <p class="subtitle">
         22 deltas analyzed |
-        Generated: 2026-02-14 22:02 |
+        Generated: 2026-02-14 22:09 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/comparison_results.json
     </p>
 
@@ -311,7 +311,7 @@
         </div>
     </div>
     <p class="subtitle">
-        Generated: 2026-02-14T22:02:36.916889 |
+        Generated: 2026-02-14T22:09:16.845268 |
         Snapshot: /Users/wolowskv/PycharmProjects/SecurityExtractor/data/kubernetes
     </p>
     <div><span class='badge badge-severity sev-High'>High: 4420</span> <span class='badge badge-severity sev-Low'>Low: 30</span> <span class='badge badge-severity sev-Medium'>Medium: 3068</span> <span class='badge badge-severity sev-Very High'>Very High: 1518</span></div>
@@ -323,14 +323,14 @@
     <div class="section-note">
         Status: <strong>ok</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        Generated: 2026-02-14T22:02:37.012238 |
+        Generated: 2026-02-14T22:09:16.943039 |
         Overall Posture: <strong>no_material_change</strong> |
         Items: <strong>4</strong>
     </div>
-    <p>The recent commit updates the CSI driver image versions in several test manifests. No new security findings were introduced, and existing low‑ and medium‑severity hardening issues remain unchanged, resulting in no material change to the repository’s security posture.</p>
-    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No new attack surface is introduced; however, the low‑severity hardening gap of default‑namespace usage persists.</td><td>Create and use a dedicated namespace for the CSI driver resources and migrate existing objects out of the default namespace.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>The change does not alter the attack surface; the low‑severity issue of default‑namespace usage remains.</td><td>Refactor the manifest to deploy the CSI driver into a non‑default namespace and adjust role bindings accordingly.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>Existing hardening gaps persist, potentially allowing privilege escalation or reduced isolation, but no new risk is added by the image change.</td><td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to the container definition.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The pre‑existing hardening gaps remain unchanged, keeping the same level of risk without introducing new exposure.</td><td>Apply least‑privilege capabilities, enforce a default seccomp profile, and configure a liveness probe for the mock proxy container.</td></tr></tbody></table>
+    <p>Four container image version updates were applied across CSI driver manifests. The changes do not introduce new security findings, modify existing hardening issues, or alter the attack surface, resulting in no material posture change.</p>
+    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No change to permissions, namespace usage, or runtime security settings; the attack surface remains the same.</td><td>Validate that the new image version is scanned for known CVEs and that it does not introduce regressions.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>The manifest’s namespace, service account, and capability settings stay unchanged, so the attack surface is unchanged.</td><td>Run an image vulnerability scan on the updated tag and ensure it is sourced from a trusted registry.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>Existing findings about capabilities, seccomp profile, and liveness probe remain unchanged; attack surface is unchanged.</td><td>Confirm the new image does not add privileged capabilities and that seccomp defaults are still applied.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The manifest continues to have the same capability and seccomp settings; no new exposure is introduced.</td><td>Verify the new image is signed and scanned, and that existing security policies still apply.</td></tr></tbody></table>
     <h2>LLM Limitations</h2>
-    <ul><li>All findings are pre‑existing and unchanged by the diff; impact assessment relies on static scanner output without runtime verification.</li></ul>
+    <ul><li>All findings are pre‑existing hardening issues; the diff only updates image versions, so security impact is limited to verification of the new image.</li><li>Confidence scores reflect that the mapping to AC9 is based on the provided attack_class field rather than direct evidence of a vulnerability.</li></ul>
 
 
     <h2>Attack Class Distribution</h2>

@@ -1,5 +1,5 @@
 {
-  "published_at": "2026-02-14T22:02:44.658023",
+  "published_at": "2026-02-14T22:09:20.564247",
   "source_output_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/output",
   "site_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs",
   "copied_files": [
@@ -9,11 +9,10 @@
   ],
   "copied_dirs": [],
   "missing_artifacts": [
-    "pipeline_overview.html",
-    "docs",
-    "pipeline_overview.html"
+    "docs"
   ],
   "index_source": "pipeline_overview.html",
+  "reused_existing_index_source": true,
   "viewer_max_lines": 1000,
   "updated_files": 3
 }

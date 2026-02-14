@@ -126,7 +126,7 @@
 <body>
     <h1>LLM Security Explanation Report</h1>
     <p class="subtitle">
-        Generated: 2026-02-14 22:02 |
+        Generated: 2026-02-14 22:09 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
     </p>
 
@@ -152,11 +152,11 @@
     <div class="section-note">
         Provider: <strong>openrouter</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        LLM generated_at: 2026-02-14T22:02:37.012238
+        LLM generated_at: 2026-02-14T22:09:16.943039
     </div>
 
     <h2>Executive Summary</h2>
-    <p>The recent commit updates the CSI driver image versions in several test manifests. No new security findings were introduced, and existing low‑ and medium‑severity hardening issues remain unchanged, resulting in no material change to the repository’s security posture.</p>
+    <p>Four container image version updates were applied across CSI driver manifests. The changes do not introduce new security findings, modify existing hardening issues, or alter the attack surface, resulting in no material posture change.</p>
 
     <h2>Explained Findings</h2>
     
@@ -183,8 +183,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>No new attack surface is introduced; however, the low‑severity hardening gap of default‑namespace usage persists.</td>
-                <td>Create and use a dedicated namespace for the CSI driver resources and migrate existing objects out of the default namespace.</td>
+                <td>No change to permissions, namespace usage, or runtime security settings; the attack surface remains the same.</td>
+                <td>Validate that the new image version is scanned for known CVEs and that it does not introduce regressions.</td>
             </tr>
 
 
@@ -197,8 +197,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The change does not alter the attack surface; the low‑severity issue of default‑namespace usage remains.</td>
-                <td>Refactor the manifest to deploy the CSI driver into a non‑default namespace and adjust role bindings accordingly.</td>
+                <td>The manifest’s namespace, service account, and capability settings stay unchanged, so the attack surface is unchanged.</td>
+                <td>Run an image vulnerability scan on the updated tag and ensure it is sourced from a trusted registry.</td>
             </tr>
 
 
@@ -211,8 +211,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>Existing hardening gaps persist, potentially allowing privilege escalation or reduced isolation, but no new risk is added by the image change.</td>
-                <td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to the container definition.</td>
+                <td>Existing findings about capabilities, seccomp profile, and liveness probe remain unchanged; attack surface is unchanged.</td>
+                <td>Confirm the new image does not add privileged capabilities and that seccomp defaults are still applied.</td>
             </tr>
 
 
@@ -225,8 +225,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The pre‑existing hardening gaps remain unchanged, keeping the same level of risk without introducing new exposure.</td>
-                <td>Apply least‑privilege capabilities, enforce a default seccomp profile, and configure a liveness probe for the mock proxy container.</td>
+                <td>The manifest continues to have the same capability and seccomp settings; no new exposure is introduced.</td>
+                <td>Verify the new image is signed and scanned, and that existing security policies still apply.</td>
             </tr>
 
         </tbody>
@@ -235,7 +235,7 @@
 
     <h2>Limitations</h2>
     <ul>
-        <li>All findings are pre‑existing and unchanged by the diff; impact assessment relies on static scanner output without runtime verification.</li>
+        <li>All findings are pre‑existing hardening issues; the diff only updates image versions, so security impact is limited to verification of the new image.</li><li>Confidence scores reflect that the mapping to AC9 is based on the provided attack_class field rather than direct evidence of a vulnerability.</li>
     </ul>
     <h2>Ignored Findings</h2>
     <p>0 findings were explicitly ignored by the LLM output.</p>
