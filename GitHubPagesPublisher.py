@@ -65,11 +65,17 @@ class GitHubPagesPublisher:
         copied_files: List[str] = []
         copied_dirs: List[str] = []
         missing: List[str] = []
+        reused_existing_index_source = False
 
         for rel_name in self.include_files:
             src = output_path / rel_name
             dst = self.site_dir / rel_name
             if not src.exists():
+                # Keep an already-published index source file when the run
+                # did not regenerate it in output/.
+                if rel_name == self.index_source and dst.exists():
+                    reused_existing_index_source = True
+                    continue
                 missing.append(rel_name)
                 continue
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -88,12 +94,17 @@ class GitHubPagesPublisher:
             copied_dirs.append(str(dst_dir))
 
         index_src = output_path / self.index_source
+        existing_index_src = self.site_dir / self.index_source
         index_dst = self.site_dir / "index.html"
         if index_src.exists():
             shutil.copy2(index_src, index_dst)
+        elif existing_index_src.exists():
+            shutil.copy2(existing_index_src, index_dst)
+            reused_existing_index_source = True
         else:
             self._write_fallback_index(index_dst)
-            missing.append(self.index_source)
+            if self.index_source not in missing:
+                missing.append(self.index_source)
 
         viewer_cfg_result = self._apply_viewer_configuration(output_path)
 
@@ -107,6 +118,7 @@ class GitHubPagesPublisher:
             "copied_dirs": copied_dirs,
             "missing_artifacts": missing,
             "index_source": self.index_source,
+            "reused_existing_index_source": reused_existing_index_source,
             **viewer_cfg_result,
         }
         meta_path = self.site_dir / "site_metadata.json"
@@ -127,6 +139,7 @@ class GitHubPagesPublisher:
             "missing_artifacts": missing,
             "auto_commit": self.auto_commit,
             "auto_push": self.auto_push,
+            "reused_existing_index_source": reused_existing_index_source,
             **viewer_cfg_result,
             **commit_info,
         }
