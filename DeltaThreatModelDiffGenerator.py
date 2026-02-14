@@ -39,6 +39,36 @@ logger = logging.getLogger(__name__)
 # Default config directory (relative to this file)
 # ---------------------------------------------------------------------------
 _DEFAULT_CONFIG_DIR = Path(__file__).resolve().parent / "config"
+_DEFAULT_THREAT_MODEL_SEMANTICS: dict[str, Any] = {
+    "defaults": {
+        "secret_pattern": (
+            r"(?i)(password|secret|token|api.?key|credential|private.?key|auth)"
+        ),
+        "readonly_verbs": ["get", "list", "watch"],
+    },
+    "change_type_defaults": {
+        "NEW_UNHARDENED": {
+            "attack_class": "AC9",
+            "severity": "MEDIUM",
+        },
+        "BOUNDARY_REMOVED": {
+            "attack_class": "AC4",
+            "severity": "HIGH",
+        },
+        "BOUNDARY_ADDED": {
+            "attack_class": "AC4",
+            "severity": "LOW",
+        },
+        "ELEMENT_ADDED": {
+            "attack_class": "",
+            "severity": "INFO",
+        },
+        "ELEMENT_REMOVED": {
+            "attack_class": "",
+            "severity": "INFO",
+        },
+    },
+}
 
 
 def _load_yaml(path: Path) -> dict:
@@ -216,16 +246,33 @@ class DeltaThreatModelDiffGenerator:
             threat_model_cfg.get("hardening_labels", [])
         )
 
+        semantics_defaults = threat_model_cfg.get("defaults", {})
+        if not isinstance(semantics_defaults, dict):
+            semantics_defaults = {}
+
         # Secret detection pattern for ConfigMaps
-        pattern_str = threat_model_cfg.get(
-            "secret_pattern",
-            r"(?i)(password|secret|token|api.?key|credential|private.?key|auth)",
-        )
+        pattern_str = threat_model_cfg.get("secret_pattern")
+        if not pattern_str:
+            pattern_str = semantics_defaults.get("secret_pattern")
+        if not pattern_str:
+            pattern_str = _DEFAULT_THREAT_MODEL_SEMANTICS["defaults"]["secret_pattern"]
         self._secret_pattern: re.Pattern = re.compile(pattern_str)
 
         # Read-only RBAC verbs
+        readonly_verbs = threat_model_cfg.get("readonly_verbs")
+        if not readonly_verbs:
+            readonly_verbs = semantics_defaults.get("readonly_verbs")
+        if not readonly_verbs:
+            readonly_verbs = _DEFAULT_THREAT_MODEL_SEMANTICS["defaults"][
+                "readonly_verbs"
+            ]
         self._readonly_verbs: frozenset[str] = frozenset(
-            threat_model_cfg.get("readonly_verbs", ["get", "list", "watch"])
+            str(v).strip().lower() for v in readonly_verbs
+        )
+
+        # Fixed finding semantics by change type (attack class + severity)
+        self._change_type_defaults = self._load_change_type_defaults(
+            threat_model_cfg.get("change_type_defaults", {}),
         )
 
         logger.info(
@@ -236,6 +283,37 @@ class DeltaThreatModelDiffGenerator:
             len(self._risky_combos),
             len(self._hardening_labels),
         )
+
+    def _load_change_type_defaults(
+        self,
+        configured_defaults: Any,
+    ) -> Dict[ChangeType, Dict[str, str]]:
+        defaults_raw = _DEFAULT_THREAT_MODEL_SEMANTICS["change_type_defaults"]
+        merged_raw: Dict[str, Dict[str, Any]] = {
+            key: dict(value) for key, value in defaults_raw.items()
+        }
+
+        if isinstance(configured_defaults, dict):
+            for key, value in configured_defaults.items():
+                if not isinstance(value, dict):
+                    continue
+                key_str = str(key)
+                merged_raw[key_str] = {**merged_raw.get(key_str, {}), **value}
+
+        mapped: Dict[ChangeType, Dict[str, str]] = {}
+        for change_type in ChangeType:
+            raw = merged_raw.get(change_type.value, {})
+            mapped[change_type] = {
+                "attack_class": str(raw.get("attack_class", "")),
+                "severity": str(raw.get("severity", "INFO")),
+            }
+        return mapped
+
+    def _finding_defaults(self, change_type: ChangeType) -> Tuple[str, str]:
+        cfg = self._change_type_defaults.get(change_type, {})
+        attack_class = str(cfg.get("attack_class", ""))
+        severity = str(cfg.get("severity", "INFO"))
+        return attack_class, severity
 
     # ===================================================================
     # Input: load extraction deltas from JSONL file
@@ -717,7 +795,9 @@ class DeltaThreatModelDiffGenerator:
         all_verbs: set[str] = set()
 
         for rule in rules:
-            verbs = set(rule.get("verbs", []))
+            verbs = {
+                str(v).strip().lower() for v in (rule.get("verbs", []) or [])
+            }
             resources = set(rule.get("resources", []))
             if "*" in verbs or "*" in resources:
                 labels.add("AdminPath")
@@ -859,35 +939,42 @@ class DeltaThreatModelDiffGenerator:
             if elem.kind == "Process" and not (
                 elem.labels & self._hardening_labels
             ):
+                attack_class, severity = self._finding_defaults(
+                    ChangeType.NEW_UNHARDENED
+                )
                 findings.append(ThreatFinding(
                     change_type=ChangeType.NEW_UNHARDENED,
                     element_name=elem.name,
                     labels_before=[],
                     labels_after=sorted(elem.labels),
-                    attack_class="AC9",
-                    severity="MEDIUM",
+                    attack_class=attack_class,
+                    severity=severity,
                 ))
 
         # Informational: added elements
         for elem in added:
+            attack_class, severity = self._finding_defaults(ChangeType.ELEMENT_ADDED)
             findings.append(ThreatFinding(
                 change_type=ChangeType.ELEMENT_ADDED,
                 element_name=elem.name,
                 labels_before=[],
                 labels_after=sorted(elem.labels),
-                attack_class="",
-                severity="INFO",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         # Informational: removed elements
         for elem in removed:
+            attack_class, severity = self._finding_defaults(
+                ChangeType.ELEMENT_REMOVED
+            )
             findings.append(ThreatFinding(
                 change_type=ChangeType.ELEMENT_REMOVED,
                 element_name=elem.name,
                 labels_before=sorted(elem.labels),
                 labels_after=[],
-                attack_class="",
-                severity="INFO",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         return findings
@@ -899,13 +986,16 @@ class DeltaThreatModelDiffGenerator:
         # Unhardened processes
         for elem in model.processes():
             if not (elem.labels & self._hardening_labels):
+                attack_class, severity = self._finding_defaults(
+                    ChangeType.NEW_UNHARDENED
+                )
                 findings.append(ThreatFinding(
                     change_type=ChangeType.NEW_UNHARDENED,
                     element_name=elem.name,
                     labels_before=[],
                     labels_after=sorted(elem.labels),
-                    attack_class="AC9",
-                    severity="MEDIUM",
+                    attack_class=attack_class,
+                    severity=severity,
                 ))
 
         # Risky combos on the new file
@@ -923,43 +1013,49 @@ class DeltaThreatModelDiffGenerator:
 
         # Informational: all added elements
         for elem in model.elements:
+            attack_class, severity = self._finding_defaults(ChangeType.ELEMENT_ADDED)
             findings.append(ThreatFinding(
                 change_type=ChangeType.ELEMENT_ADDED,
                 element_name=elem.name,
                 labels_before=[],
                 labels_after=sorted(elem.labels),
-                attack_class="",
-                severity="INFO",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         return findings
 
-    @staticmethod
-    def _detect_deleted_file(model: K8sModel) -> list[ThreatFinding]:
+    def _detect_deleted_file(self, model: K8sModel) -> list[ThreatFinding]:
         """Findings for a deleted file."""
         findings: list[ThreatFinding] = []
 
         # Removed boundaries (NetworkPolicies)
         for elem in model.boundaries():
             if elem.source_resource == "NetworkPolicy":
+                attack_class, severity = self._finding_defaults(
+                    ChangeType.BOUNDARY_REMOVED
+                )
                 findings.append(ThreatFinding(
                     change_type=ChangeType.BOUNDARY_REMOVED,
                     element_name=elem.name,
                     labels_before=sorted(elem.labels),
                     labels_after=[],
-                    attack_class="AC4",
-                    severity="HIGH",
+                    attack_class=attack_class,
+                    severity=severity,
                 ))
 
         # Informational: all removed elements
         for elem in model.elements:
+            attack_class, severity = self._finding_defaults(
+                ChangeType.ELEMENT_REMOVED
+            )
             findings.append(ThreatFinding(
                 change_type=ChangeType.ELEMENT_REMOVED,
                 element_name=elem.name,
                 labels_before=sorted(elem.labels),
                 labels_after=[],
-                attack_class="",
-                severity="INFO",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         return findings
@@ -985,8 +1081,8 @@ class DeltaThreatModelDiffGenerator:
 
         return findings
 
-    @staticmethod
     def _detect_boundary_changes(
+        self,
         before_model: K8sModel,
         after_model: K8sModel,
     ) -> list[ThreatFinding]:
@@ -1005,23 +1101,29 @@ class DeltaThreatModelDiffGenerator:
         }
 
         for name, _ns in before_boundaries - after_boundaries:
+            attack_class, severity = self._finding_defaults(
+                ChangeType.BOUNDARY_REMOVED
+            )
             findings.append(ThreatFinding(
                 change_type=ChangeType.BOUNDARY_REMOVED,
                 element_name=name,
                 labels_before=[],
                 labels_after=[],
-                attack_class="AC4",
-                severity="HIGH",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         for name, _ns in after_boundaries - before_boundaries:
+            attack_class, severity = self._finding_defaults(
+                ChangeType.BOUNDARY_ADDED
+            )
             findings.append(ThreatFinding(
                 change_type=ChangeType.BOUNDARY_ADDED,
                 element_name=name,
                 labels_before=[],
                 labels_after=[],
-                attack_class="AC4",
-                severity="LOW",
+                attack_class=attack_class,
+                severity=severity,
             ))
 
         return findings

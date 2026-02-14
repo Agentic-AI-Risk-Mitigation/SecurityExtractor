@@ -28,6 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent
 PYTM_VENDOR_DIR = BASE_DIR / "data" / "pytm"
 if PYTM_VENDOR_DIR.exists() and str(PYTM_VENDOR_DIR) not in sys.path:
     sys.path.insert(0, str(PYTM_VENDOR_DIR))
+_DEFAULT_CONFIG_PATH = BASE_DIR / "config" / "full_pytm_config.yaml"
 
 from pytm import (  # type: ignore  # noqa: E402
     Action,
@@ -40,18 +41,58 @@ from pytm import (  # type: ignore  # noqa: E402
     TM,
 )
 
-
-WORKLOAD_KINDS = {
-    "Deployment",
-    "StatefulSet",
-    "DaemonSet",
-    "ReplicaSet",
-    "Job",
-    "CronJob",
-    "Pod",
+_DEFAULT_MODELING_CONFIG: Dict[str, Any] = {
+    "modeling": {
+        "workload_kinds": [
+            "Deployment",
+            "StatefulSet",
+            "DaemonSet",
+            "ReplicaSet",
+            "Job",
+            "CronJob",
+            "Pod",
+        ],
+        "datastore_kinds": ["Secret", "ConfigMap", "PersistentVolumeClaim"],
+        "public_service_types": ["LoadBalancer", "NodePort"],
+        "internet_entity_name": "Internet",
+        "service": {
+            "default_type": "ClusterIP",
+            "protocol_defaults": {
+                "protocol": "HTTP",
+                "encrypted": False,
+            },
+            "encrypted_port_protocol": "HTTPS",
+            "encrypted_ports": [443],
+            "port_protocol_map": {
+                "443": {
+                    "protocol": "HTTPS",
+                    "encrypted": True,
+                },
+            },
+        },
+        "ingress": {
+            "tls_protocol": "HTTPS",
+            "non_tls_protocol": "HTTP",
+            "tls_port": 443,
+            "non_tls_port": 80,
+        },
+        "datastore_flow": {
+            "protocol": "K8S_API",
+            "encrypted": True,
+        },
+        "datastore_controls": {
+            "encrypted_at_rest": {
+                "Secret": True,
+                "ConfigMap": False,
+                "PersistentVolumeClaim": False,
+            },
+        },
+        "workload_controls": {
+            "default_service_account_name": "default",
+            "treat_allow_privilege_escalation_as_privileged": True,
+        },
+    },
 }
-
-DATASTORE_KINDS = {"Secret", "ConfigMap", "PersistentVolumeClaim"}
 
 
 @dataclass
@@ -81,16 +122,166 @@ class FullPyTMGenerator:
         repo_path: str,
         include_extensions: Optional[Iterable[str]] = None,
         max_files: Optional[int] = None,
+        modeling_config: Optional[Dict[str, Any]] = None,
+        modeling_config_path: Optional[str] = None,
     ) -> None:
         self.repo_path = Path(repo_path)
         self.include_extensions = set(include_extensions or {".yaml", ".yml"})
         self.max_files = max_files
+        self._modeling_config = self._load_modeling_config(
+            modeling_config=modeling_config,
+            modeling_config_path=modeling_config_path,
+        )
+        modeling_cfg = self._modeling_config.get("modeling", self._modeling_config)
+
+        self._workload_kinds = {
+            str(k) for k in modeling_cfg.get("workload_kinds", [])
+        }
+        self._datastore_kinds = {
+            str(k) for k in modeling_cfg.get("datastore_kinds", [])
+        }
+        self._public_service_types = {
+            str(k) for k in modeling_cfg.get("public_service_types", [])
+        }
+        self._internet_entity_name = str(
+            modeling_cfg.get("internet_entity_name", "Internet")
+        )
+
+        service_cfg = modeling_cfg.get("service", {}) or {}
+        protocol_defaults = service_cfg.get("protocol_defaults", {}) or {}
+        self._service_default_type = str(
+            service_cfg.get("default_type", "ClusterIP")
+        )
+        self._service_default_protocol = str(
+            protocol_defaults.get("protocol", "HTTP")
+        )
+        self._service_default_encrypted = bool(
+            protocol_defaults.get("encrypted", False)
+        )
+        self._service_encrypted_port_protocol = str(
+            service_cfg.get("encrypted_port_protocol", "HTTPS")
+        )
+        self._service_encrypted_ports = {
+            int(p)
+            for p in service_cfg.get("encrypted_ports", [])
+            if str(p).isdigit()
+        }
+        self._service_port_protocol_map: Dict[int, Tuple[str, bool]] = {}
+        for raw_port, raw_cfg in (service_cfg.get("port_protocol_map", {}) or {}).items():
+            if not isinstance(raw_cfg, dict):
+                continue
+            try:
+                port = int(raw_port)
+            except (TypeError, ValueError):
+                continue
+            protocol = str(raw_cfg.get("protocol", self._service_default_protocol))
+            encrypted = bool(raw_cfg.get("encrypted", self._service_default_encrypted))
+            self._service_port_protocol_map[port] = (protocol, encrypted)
+
+        ingress_cfg = modeling_cfg.get("ingress", {}) or {}
+        self._ingress_tls_protocol = str(ingress_cfg.get("tls_protocol", "HTTPS"))
+        self._ingress_non_tls_protocol = str(
+            ingress_cfg.get("non_tls_protocol", "HTTP")
+        )
+        self._ingress_tls_port = int(ingress_cfg.get("tls_port", 443) or 443)
+        self._ingress_non_tls_port = int(
+            ingress_cfg.get("non_tls_port", 80) or 80
+        )
+
+        datastore_flow_cfg = modeling_cfg.get("datastore_flow", {}) or {}
+        self._datastore_flow_protocol = str(
+            datastore_flow_cfg.get("protocol", "K8S_API")
+        )
+        self._datastore_flow_encrypted = bool(
+            datastore_flow_cfg.get("encrypted", True)
+        )
+
+        datastore_controls_cfg = modeling_cfg.get("datastore_controls", {}) or {}
+        self._datastore_encryption_map = {
+            str(kind): bool(is_encrypted)
+            for kind, is_encrypted in (
+                datastore_controls_cfg.get("encrypted_at_rest", {}) or {}
+            ).items()
+        }
+
+        workload_controls_cfg = modeling_cfg.get("workload_controls", {}) or {}
+        self._default_service_account_name = str(
+            workload_controls_cfg.get("default_service_account_name", "default")
+        )
+        self._allow_priv_escalation_counts_as_privileged = bool(
+            workload_controls_cfg.get(
+                "treat_allow_privilege_escalation_as_privileged", True
+            )
+        )
+
         self._boundaries: Dict[str, Boundary] = {}
         self._elements: Dict[Tuple[str, str, str], Any] = {}
         self._workloads: List[WorkloadRef] = []
         self._services: List[ServiceRef] = []
         self._ingresses: List[Dict[str, Any]] = []
         self._internet: Optional[ExternalEntity] = None
+        LOG.info(
+            "FullPyTMGenerator semantics loaded from %s",
+            self._modeling_config.get("_source", "defaults"),
+        )
+
+    @staticmethod
+    def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        merged = dict(base)
+        for key, value in override.items():
+            if (
+                key in merged
+                and isinstance(merged[key], dict)
+                and isinstance(value, dict)
+            ):
+                merged[key] = FullPyTMGenerator._deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+        return merged
+
+    @staticmethod
+    def _load_modeling_config(
+        modeling_config: Optional[Dict[str, Any]],
+        modeling_config_path: Optional[str],
+    ) -> Dict[str, Any]:
+        if modeling_config is not None:
+            merged = FullPyTMGenerator._deep_merge(
+                _DEFAULT_MODELING_CONFIG,
+                modeling_config,
+            )
+            merged["_source"] = "in-memory argument"
+            return merged
+
+        cfg_path = Path(modeling_config_path) if modeling_config_path else _DEFAULT_CONFIG_PATH
+        if not cfg_path.is_absolute():
+            cfg_path = BASE_DIR / cfg_path
+
+        if not cfg_path.exists():
+            merged = dict(_DEFAULT_MODELING_CONFIG)
+            merged["_source"] = "built-in defaults"
+            LOG.info(
+                "Full PyTM config not found at %s; using defaults.",
+                cfg_path,
+            )
+            return merged
+
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as fh:
+                loaded = yaml.safe_load(fh) or {}
+            if not isinstance(loaded, dict):
+                raise ValueError("expected YAML mapping at root")
+            merged = FullPyTMGenerator._deep_merge(_DEFAULT_MODELING_CONFIG, loaded)
+            merged["_source"] = str(cfg_path)
+            return merged
+        except Exception as exc:
+            merged = dict(_DEFAULT_MODELING_CONFIG)
+            merged["_source"] = "built-in defaults (config load failed)"
+            LOG.warning(
+                "Failed to load Full PyTM config from %s: %s. Using defaults.",
+                cfg_path,
+                exc,
+            )
+            return merged
 
     def run(self) -> Dict[str, Any]:
         if not self.repo_path.exists():
@@ -189,7 +380,7 @@ class FullPyTMGenerator:
         if key in self._elements:
             return
 
-        if kind in WORKLOAD_KINDS:
+        if kind in self._workload_kinds:
             element = Process(f"{namespace}/{name}")
             element.inBoundary = self._namespace_boundary(namespace)
             self._apply_workload_controls(element, doc)
@@ -218,7 +409,7 @@ class FullPyTMGenerator:
                     namespace=namespace,
                     name=name,
                     selector=spec.get("selector", {}) or {},
-                    service_type=spec.get("type", "ClusterIP"),
+                    service_type=spec.get("type", self._service_default_type),
                     ports=spec.get("ports", []) or [],
                     element=element,
                 )
@@ -232,10 +423,13 @@ class FullPyTMGenerator:
             self._ingresses.append(doc)
             return
 
-        if kind in DATASTORE_KINDS:
+        if kind in self._datastore_kinds:
             ds = Datastore(f"{namespace}/{name}")
             ds.inBoundary = self._namespace_boundary(namespace)
-            ds.controls.isEncryptedAtRest = True if kind == "Secret" else False
+            ds.controls.isEncryptedAtRest = self._datastore_encryption_map.get(
+                kind,
+                False,
+            )
             self._elements[key] = ds
             return
 
@@ -246,7 +440,7 @@ class FullPyTMGenerator:
 
     def _ensure_internet_entity(self) -> None:
         if self._internet is None:
-            self._internet = ExternalEntity("Internet")
+            self._internet = ExternalEntity(self._internet_entity_name)
 
     @staticmethod
     def _extract_workload_labels(kind: str, doc: Dict[str, Any]) -> Dict[str, str]:
@@ -277,8 +471,7 @@ class FullPyTMGenerator:
             ) or {}
         return (spec.get("template", {}).get("spec", {})) or {}
 
-    @staticmethod
-    def _apply_workload_controls(element: Process, doc: Dict[str, Any]) -> None:
+    def _apply_workload_controls(self, element: Process, doc: Dict[str, Any]) -> None:
         kind = doc.get("kind", "")
         spec = doc.get("spec", {}) or {}
         pod_spec = FullPyTMGenerator._extract_pod_spec(kind, spec)
@@ -290,7 +483,12 @@ class FullPyTMGenerator:
         has_root = False
         for c in containers:
             sc = c.get("securityContext", {}) or {}
-            if sc.get("privileged") is True or sc.get("allowPrivilegeEscalation") is True:
+            if sc.get("privileged") is True:
+                is_privileged = True
+            if (
+                self._allow_priv_escalation_counts_as_privileged
+                and sc.get("allowPrivilegeEscalation") is True
+            ):
                 is_privileged = True
             if sc.get("runAsUser") == 0:
                 has_root = True
@@ -298,7 +496,8 @@ class FullPyTMGenerator:
         run_as_non_root = (pod_spec.get("securityContext", {}) or {}).get("runAsNonRoot") is True
         element.controls.isHardened = run_as_non_root and not is_privileged and not has_root
         element.controls.hasAccessControl = bool(
-            pod_spec.get("serviceAccountName") and pod_spec.get("serviceAccountName") != "default"
+            pod_spec.get("serviceAccountName")
+            and pod_spec.get("serviceAccountName") != self._default_service_account_name
         )
         element.usesEnvironmentVariables = any((c.get("env") or c.get("envFrom")) for c in containers)
 
@@ -306,9 +505,12 @@ class FullPyTMGenerator:
         ports = service.ports or []
         first = ports[0] if ports else {}
         port = int(first.get("port", 0) or 0)
-        if port == 443:
-            return "HTTPS", port, True
-        return "HTTP", port, False
+        if port in self._service_port_protocol_map:
+            protocol, encrypted = self._service_port_protocol_map[port]
+            return protocol, port, encrypted
+        if port in self._service_encrypted_ports:
+            return self._service_encrypted_port_protocol, port, True
+        return self._service_default_protocol, port, self._service_default_encrypted
 
     def _build_service_to_workload_flows(self) -> None:
         for svc in self._services:
@@ -356,15 +558,21 @@ class FullPyTMGenerator:
                     service_elem,
                     f"internet -> ingress-backend:{ns}/{svc_name}",
                 )
-                flow.protocol = "HTTPS" if tls_enabled else "HTTP"
-                flow.dstPort = 443 if tls_enabled else 80
+                flow.protocol = (
+                    self._ingress_tls_protocol
+                    if tls_enabled
+                    else self._ingress_non_tls_protocol
+                )
+                flow.dstPort = (
+                    self._ingress_tls_port if tls_enabled else self._ingress_non_tls_port
+                )
                 flow.controls.isEncrypted = tls_enabled
 
     def _build_public_service_flows(self) -> None:
         if not self._internet:
             return
         for svc in self._services:
-            if svc.service_type not in {"LoadBalancer", "NodePort"}:
+            if svc.service_type not in self._public_service_types:
                 continue
             protocol, port, encrypted = self._service_protocol(svc)
             flow = Dataflow(
@@ -389,8 +597,8 @@ class FullPyTMGenerator:
                     datastore,
                     f"workload:{wl.name} -> {kind.lower()}:{name}",
                 )
-                flow.protocol = "K8S_API"
-                flow.controls.isEncrypted = True
+                flow.protocol = self._datastore_flow_protocol
+                flow.controls.isEncrypted = self._datastore_flow_encrypted
 
     @staticmethod
     def _collect_secret_configmap_refs(pod_spec: Dict[str, Any]) -> set[Tuple[str, str]]:
@@ -461,6 +669,11 @@ def _parse_args() -> argparse.Namespace:
         help="Optional cap on the number of manifest files to scan.",
     )
     parser.add_argument(
+        "--config-path",
+        default=str(_DEFAULT_CONFIG_PATH),
+        help="Path to full PyTM semantics YAML.",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -481,6 +694,7 @@ def main() -> None:
     gen = FullPyTMGenerator(
         repo_path=args.repo_path,
         max_files=args.max_files,
+        modeling_config_path=args.config_path,
     )
     result = gen.run()
     gen.save_json(result, str(output_path))

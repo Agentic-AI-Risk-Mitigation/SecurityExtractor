@@ -76,37 +76,7 @@ CHECKOV_WORKERS = 4  # parallel Checkov subprocesses (1 = sequential)
 THREAT_MODEL_SKIP_NON_K8S = True  # skip files without apiVersion/kind
 
 # --- LLM Explainer (OpenRouter) ---
-LLM_ENABLED = True
-LLM_TOP_N = 5
-LLM_TIMEOUT_SECONDS = 30
-LLM_MAX_OUTPUT_TOKENS = 1800
-LLM_TEMPERATURE = 0.2
-LLM_MODEL = "openrouter/aurora-alpha"
-LLM_MAX_MODEL_ATTEMPTS = 4
-LLM_PAID_FALLBACK_MODELS = [
-    "openrouter/aurora-alpha",
-    "openrouter/auto",
-]
-LLM_FALLBACK_MODELS = [
-    "openrouter/auto",
-    "nousresearch/hermes-3-llama-3.1-405b:free",
-    "deepseek/deepseek-r1-0528:free",
-    "qwen/qwen3-coder:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
-]
-LLM_FREE_FALLBACK_MODELS = [
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "deepseek/deepseek-r1-0528:free",
-    "qwen/qwen3-coder:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
-]
-LLM_DISCOVER_FREE_MODELS = False
-LLM_MAX_DISCOVERED_MODELS = 6
-LLM_ALLOW_PAID_FALLBACK = True
-LLM_BASE_URL = "https://openrouter.ai/api/v1"
-LLM_HTTP_REFERER = "http://localhost:5000"
-LLM_APP_TITLE = "SecurityExtractorPipeline"
-LLM_PROMPT_TEMPLATE = "config/llm_prompt_template.txt"
+# Single source of truth is config/llm_explainer_config.yaml.
 LLM_EXPLAINER_CONFIG_PATH = "config/llm_explainer_config.yaml"
 
 # --- Comparison ---
@@ -198,23 +168,6 @@ def _build_pipeline_cfg() -> dict:
         },
         "llm_explainer": {
             "config_path": LLM_EXPLAINER_CONFIG_PATH,
-            "enabled": LLM_ENABLED,
-            "top_n": LLM_TOP_N,
-            "timeout_seconds": LLM_TIMEOUT_SECONDS,
-            "max_output_tokens": LLM_MAX_OUTPUT_TOKENS,
-            "temperature": LLM_TEMPERATURE,
-            "model": LLM_MODEL,
-            "max_model_attempts": LLM_MAX_MODEL_ATTEMPTS,
-            "paid_fallback_models": LLM_PAID_FALLBACK_MODELS,
-            "fallback_models": LLM_FALLBACK_MODELS,
-            "free_fallback_models": LLM_FREE_FALLBACK_MODELS,
-            "discover_free_models": LLM_DISCOVER_FREE_MODELS,
-            "max_discovered_models": LLM_MAX_DISCOVERED_MODELS,
-            "allow_paid_fallback": LLM_ALLOW_PAID_FALLBACK,
-            "base_url": LLM_BASE_URL,
-            "http_referer": LLM_HTTP_REFERER,
-            "app_title": LLM_APP_TITLE,
-            "prompt_template": LLM_PROMPT_TEMPLATE,
         },
         "comparison": {
             "weights": {
@@ -286,20 +239,27 @@ def _save_settings(pipeline_cfg: dict, output_path: str) -> None:
 
 
 def _merge_llm_explainer_cfg(pipeline_cfg: dict) -> None:
-    """Overlay llm_explainer settings from YAML config file if present."""
+    """Load llm_explainer settings from YAML config file (required)."""
     llm_cfg = pipeline_cfg.get("llm_explainer", {})
-    cfg_path = BASE_DIR / llm_cfg.get("config_path", LLM_EXPLAINER_CONFIG_PATH)
+    cfg_path_rel = llm_cfg.get("config_path", LLM_EXPLAINER_CONFIG_PATH)
+    cfg_path = BASE_DIR / cfg_path_rel
     if not cfg_path.exists():
-        return
+        raise FileNotFoundError(
+            f"Missing LLM config file: {cfg_path}. "
+            "Create it or set llm_explainer.config_path accordingly."
+        )
 
     loaded = _load_yaml(cfg_path)
     # Support either top-level keys or nested under `llm_explainer:`
     overrides = loaded.get("llm_explainer", loaded)
-    if not isinstance(overrides, dict):
-        return
+    if not isinstance(overrides, dict) or not overrides:
+        raise ValueError(
+            f"Invalid llm_explainer config in {cfg_path}: expected non-empty mapping."
+        )
 
-    for key, value in overrides.items():
-        llm_cfg[key] = value
+    merged = {"config_path": cfg_path_rel}
+    merged.update(overrides)
+    pipeline_cfg["llm_explainer"] = merged
 
 
 def _merge_github_pages_cfg(pipeline_cfg: dict) -> None:
