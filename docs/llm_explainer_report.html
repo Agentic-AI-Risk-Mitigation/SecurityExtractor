@@ -126,7 +126,7 @@
 <body>
     <h1>LLM Security Explanation Report</h1>
     <p class="subtitle">
-        Generated: 2026-02-14 22:49 |
+        Generated: 2026-02-14 23:41 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
     </p>
 
@@ -136,11 +136,11 @@
             <div class="label">Status</div>
         </div>
         <div class="card">
-            <div class="value">no_material_change</div>
+            <div class="value">unknown</div>
             <div class="label">Overall Posture</div>
         </div>
         <div class="card">
-            <div class="value">4</div>
+            <div class="value">5</div>
             <div class="label">Explained Items</div>
         </div>
         <div class="card">
@@ -152,11 +152,11 @@
     <div class="section-note">
         Provider: <strong>openrouter</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        LLM generated_at: 2026-02-14T22:49:27.258626
+        LLM generated_at: 2026-02-14T23:41:31.407665
     </div>
 
     <h2>Executive Summary</h2>
-    <p>Four manifest updates only bump the CSI driver image version. No new vulnerabilities were introduced, and the existing low‑ and medium‑severity hardening issues remain unchanged.</p>
+    <p><span class="empty">No executive summary available.</span></p>
 
     <h2>Explained Findings</h2>
     
@@ -177,56 +177,70 @@
             <tr>
                 <td>1</td>
                 <td>
-                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
-                    <div class="file-path">test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</div>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/777d7ddc17fd9783570b3a1d41b9c32baba2b8d8" target="_blank">777d7ddc</a></span>
+                    <div class="file-path">staging/src/k8s.io/api/testdata/v1.33.0/core.v1.Pod.after_roundtrip.yaml</div>
                 </td>
-                <td><span class="badge sev-low">LOW</span></td>
-                <td>AC9</td>
-                <td>0.05</td>
-                <td>Attack surface and data flow remain unchanged; the manifest still uses the default namespace, a low‑severity hardening gap.</td>
-                <td>Continue keeping the image up to date and migrate the workload out of the default namespace to reduce exposure.</td>
+                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td>AC6</td>
+                <td>0.88</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
 
 
             <tr>
                 <td>2</td>
                 <td>
-                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
-                    <div class="file-path">test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</div>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/777d7ddc17fd9783570b3a1d41b9c32baba2b8d8" target="_blank">777d7ddc</a></span>
+                    <div class="file-path">staging/src/k8s.io/api/testdata/v1.34.0/core.v1.Pod.after_roundtrip.yaml</div>
                 </td>
-                <td><span class="badge sev-low">LOW</span></td>
-                <td>AC9</td>
-                <td>0.05</td>
-                <td>No change to attack surface; existing default‑namespace usage persists as a low‑severity hardening issue.</td>
-                <td>Upgrade images regularly and refactor the manifest into a dedicated namespace to eliminate the default‑namespace risk.</td>
+                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td>AC6</td>
+                <td>0.88</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
 
 
             <tr>
                 <td>3</td>
                 <td>
-                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
-                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</div>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
+                    <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces0.yaml</div>
                 </td>
-                <td><span class="badge sev-medium">MEDIUM</span></td>
+                <td><span class="badge sev-unknown">UNKNOWN</span></td>
                 <td>AC9</td>
-                <td>0.05</td>
-                <td>The manifest still contains medium‑severity findings (capabilities, seccomp profile) that affect container hardening.</td>
-                <td>Review and remove unnecessary capabilities, enforce a default seccomp profile, and keep the image version current.</td>
+                <td>0.83</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
 
 
             <tr>
                 <td>4</td>
                 <td>
-                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
-                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</div>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
+                    <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces1.yaml</div>
                 </td>
-                <td><span class="badge sev-medium">MEDIUM</span></td>
+                <td><span class="badge sev-unknown">UNKNOWN</span></td>
                 <td>AC9</td>
-                <td>0.05</td>
-                <td>Existing medium‑severity hardening issues (capabilities, seccomp) remain unchanged.</td>
-                <td>Apply least‑privilege principle to container capabilities and set a secure seccomp profile while maintaining up‑to‑date images.</td>
+                <td>0.83</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+
+
+            <tr>
+                <td>5</td>
+                <td>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
+                    <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces2.yaml</div>
+                </td>
+                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td>AC9</td>
+                <td>0.83</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
 
         </tbody>
@@ -235,7 +249,7 @@
 
     <h2>Limitations</h2>
     <ul>
-        <li>All findings are pre‑existing hardening issues; the diff only updates image versions, so confidence is high but no regression or improvement is observed.</li>
+        <li>None reported.</li>
     </ul>
     <h2>Ignored Findings</h2>
     <p>0 findings were explicitly ignored by the LLM output.</p>

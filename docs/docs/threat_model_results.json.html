@@ -20,7 +20,7 @@
     <h1>threat_model_results.json</h1>
     <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
   </div>
-  <div class="meta">Total Lines: 78 | Category: Result File</div>
+  <div class="meta">Total Lines: 22356 | Category: Result File</div>
   <div class="wrap">
     <pre><code>[
   {
@@ -98,9 +98,931 @@
       &quot;Authenticated&quot;,
       &quot;Unrestricted&quot;
     ]
-  }
-]</code></pre>
-    
+  },
+  {
+    &quot;commit_sha&quot;: &quot;a2ebdf633a3a561be5c8560e5f0f2f7b17a6149c&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/dra/dra-test-driver-proxy.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;dra-test-driver&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 1,
+    &quot;risk_delta&quot;: 5,
+    &quot;before_element_count&quot;: 1,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;c8f8bb83d1183043e845ec1d1b5e3f801794a7e9&quot;,
+    &quot;file_path&quot;: &quot;cluster/gce/addons/konnectivity-agent/konnectivity-agent-ds.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;c8f8bb83d1183043e845ec1d1b5e3f801794a7e9&quot;,
+    &quot;file_path&quot;: &quot;cluster/gce/manifests/konnectivity-server.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;8dc8edf49bba5e5004a71d655235bc7b3d83d32f&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/sample-apiserver/artifacts/example/deployment.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 1,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [
+      &quot;Authenticated&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;Authenticated&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;85876061cbd56fd7dfa43db9ffa643c92a9fbf0b&quot;,
+    &quot;file_path&quot;: &quot;plugin/pkg/auth/authorizer/rbac/bootstrappolicy/testdata/cluster-roles-featuregates.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;34700d66059bf84ae686b2738724e5d5401ee844&quot;,
+    &quot;file_path&quot;: &quot;plugin/pkg/auth/authorizer/rbac/bootstrappolicy/testdata/cluster-roles-featuregates.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/HEAD/core.v1.Pod.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;LABEL_FLIP&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC6&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 1,
+    &quot;risk_delta&quot;: 5,
+    &quot;before_element_count&quot;: 1,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;ContainsSecrets&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;ReadOnly&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;ContainsSecrets&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;ReadOnly&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/HEAD/core.v1.PodStatusResult.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/v1.33.0/core.v1.Pod.after_roundtrip.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC4&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 3,
+    &quot;risk_delta&quot;: 10,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;ContainsSecrets&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;ReadOnly&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/v1.33.0/core.v1.PodStatusResult.after_roundtrip.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/v1.34.0/core.v1.Pod.after_roundtrip.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC4&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;nameValue&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;Authenticated&quot;,
+          &quot;ContainsSecrets&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;ReadOnly&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 3,
+    &quot;risk_delta&quot;: 10,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;ContainsSecrets&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;ReadOnly&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;777d7ddc17fd9783570b3a1d41b9c32baba2b8d8&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/api/testdata/v1.34.0/core.v1.PodStatusResult.after_roundtrip.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;9c915e357f3805124401f0ccf2babf28beb9d8aa&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/KubeletConfiguration/after/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;9c915e357f3805124401f0ccf2babf28beb9d8aa&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/KubeletConfiguration/roundtrip/default/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;d26b44540e332528365e3812386b0a5bcdc3ba48&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/KubeletConfiguration/after/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;d26b44540e332528365e3812386b0a5bcdc3ba48&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/KubeletConfiguration/roundtrip/default/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePullIntent/after/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePullIntent/before/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePullIntent/roundtrip/default/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePulledRecord/after/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePulledRecord/before/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;cea339fdef3f7c555bd6db06456ac08b7574c0d4&quot;,
+    &quot;file_path&quot;: &quot;pkg/kubelet/apis/config/scheme/testdata/ImagePulledRecord/roundtrip/default/v1beta1.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;4a067cc022e29ccea901ddcf9e911a0797e69743&quot;,
+    &quot;file_path&quot;: &quot;plugin/pkg/auth/authorizer/rbac/bootstrappolicy/testdata/cluster-roles-featuregates.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 0,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/apparmorprofile0.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;apparmorprofile0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;apparmorprofile0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/apparmorprofile1.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;apparmorprofile1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;apparmorprofile1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/capabilities_baseline0.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/capabilities_baseline1.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/capabilities_baseline2.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline2&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline2&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/capabilities_baseline3.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline3&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;capabilities_baseline3&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces0.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 3,
+    &quot;risk_delta&quot;: 7,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces1.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 3,
+    &quot;risk_delta&quot;: 7,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces2.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces2&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;NEW_RISKY_COMBO&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces2&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC7&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;hostnamespaces2&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;AdminPath&quot;,
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 3,
+    &quot;risk_delta&quot;: 7,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostpathvolumes0.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostpathvolumes0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;hostpathvolumes0&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostpathvolumes1.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostpathvolumes1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;AC9&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;
+      },
+      {
+        &quot;change_type&quot;: &quot;ELEMENT_ADDED&quot;,
+        &quot;element_name&quot;: &quot;hostpathvolumes1&quot;,
+        &quot;labels_before&quot;: [],
+        &quot;labels_after&quot;: [
+          &quot;MutableArtifact&quot;,
+          &quot;Unauthenticated&quot;,
+          &quot;Unrestricted&quot;
+        ],
+        &quot;attack_class&quot;: &quot;&quot;,
+        &quot;severity&quot;: &quot;INFO&quot;
+      }
+    ],
+    &quot;finding_count&quot;: 2,
+    &quot;risk_delta&quot;: 2,
+    &quot;before_element_count&quot;: 0,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [],
+    &quot;after_labels&quot;: [
+      &quot;MutableArtifact&quot;,
+      &quot;Unauthenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;af70ebcbf505bd9c2b879a8a7081724435a9fb06&quot;,
+    &quot;file_path&quot;: &quot;staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostports0.yaml&quot;,
+    &quot;findings&quot;: [
+      {
+        &quot;change_type&quot;: &quot;NEW_UNHARDENED&quot;,
+        &quot;element_name&quot;: &quot;hostports0&quot;,
+        &quot;labels_before&quot;: [],</code></pre>
+    <div class="truncation-notice">(Truncated at 1000 lines &mdash; full file has 22356 lines)</div>
   </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 {
-  "published_at": "2026-02-14T22:49:31.505150",
+  "published_at": "2026-02-14T23:41:37.885993",
   "source_output_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/output",
   "site_dir": "/Users/wolowskv/PycharmProjects/SecurityExtractor/docs",
   "copied_files": [
@@ -23,5 +23,6 @@
   "missing_required_sources": [],
   "reused_existing_index_source": false,
   "viewer_max_lines": 1000,
-  "updated_files": 5
+  "viewer_max_line_chars": 4000,
+  "updated_files": 6
 }

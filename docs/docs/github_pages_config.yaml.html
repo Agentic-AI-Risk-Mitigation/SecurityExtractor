@@ -20,12 +20,15 @@
     <h1>github_pages_config.yaml</h1>
     <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
   </div>
-  <div class="meta">Total Lines: 15 | Category: Config File</div>
+  <div class="meta">Total Lines: 18 | Category: Config File</div>
   <div class="wrap">
     <pre><code>github_pages:
   # Max number of lines shown in docs/* file-viewer pages.
   # Set to 0 or a negative value to disable this post-processing step.
   viewer_max_lines: 1000
+  # Max number of characters per line in docs/* viewer pages.
+  # Protects against huge one-line JSON/JSONL entries.
+  viewer_max_line_chars: 4000
 
   # Fail publish step when required run artifacts are missing in output/.
   strict_required_artifacts: true
