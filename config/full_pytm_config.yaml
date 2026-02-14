@@ -1,0 +1,57 @@
+# full_pytm_config.yaml -- Semantics for native full-snapshot PyTM generation.
+#
+# This file controls how Kubernetes resources are mapped and how PyTM flow
+# assumptions are made in FullPyTMGenerator.py.
+modeling:
+  workload_kinds:
+    - Deployment
+    - StatefulSet
+    - DaemonSet
+    - ReplicaSet
+    - Job
+    - CronJob
+    - Pod
+
+  datastore_kinds:
+    - Secret
+    - ConfigMap
+    - PersistentVolumeClaim
+
+  public_service_types:
+    - LoadBalancer
+    - NodePort
+
+  internet_entity_name: Internet
+
+  service:
+    default_type: ClusterIP
+    protocol_defaults:
+      protocol: HTTP
+      encrypted: false
+    encrypted_port_protocol: HTTPS
+    encrypted_ports:
+      - 443
+    port_protocol_map:
+      "443":
+        protocol: HTTPS
+        encrypted: true
+
+  ingress:
+    tls_protocol: HTTPS
+    non_tls_protocol: HTTP
+    tls_port: 443
+    non_tls_port: 80
+
+  datastore_flow:
+    protocol: K8S_API
+    encrypted: true
+
+  datastore_controls:
+    encrypted_at_rest:
+      Secret: true
+      ConfigMap: false
+      PersistentVolumeClaim: false
+
+  workload_controls:
+    default_service_account_name: default
+    treat_allow_privilege_escalation_as_privileged: true
