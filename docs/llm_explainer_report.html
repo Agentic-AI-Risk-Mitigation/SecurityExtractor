@@ -126,7 +126,7 @@
 <body>
     <h1>LLM Security Explanation Report</h1>
     <p class="subtitle">
-        Generated: 2026-02-14 23:41 |
+        Generated: 2026-02-15 00:10 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
     </p>
 
@@ -136,7 +136,7 @@
             <div class="label">Status</div>
         </div>
         <div class="card">
-            <div class="value">unknown</div>
+            <div class="value">regression</div>
             <div class="label">Overall Posture</div>
         </div>
         <div class="card">
@@ -152,11 +152,11 @@
     <div class="section-note">
         Provider: <strong>openrouter</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        LLM generated_at: 2026-02-14T23:41:31.407665
+        LLM generated_at: 2026-02-15T00:09:59.751631
     </div>
 
     <h2>Executive Summary</h2>
-    <p><span class="empty">No executive summary available.</span></p>
+    <p>The recent commits introduced new security regressions across test data files, adding high‑severity risk combinations and unhardening pod configurations, which expand the attack surface and reduce isolation.</p>
 
     <h2>Explained Findings</h2>
     
@@ -180,11 +180,11 @@
                     <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/777d7ddc17fd9783570b3a1d41b9c32baba2b8d8" target="_blank">777d7ddc</a></span>
                     <div class="file-path">staging/src/k8s.io/api/testdata/v1.33.0/core.v1.Pod.after_roundtrip.yaml</div>
                 </td>
-                <td><span class="badge sev-unknown">UNKNOWN</span></td>
-                <td>AC6</td>
+                <td><span class="badge sev-high">HIGH</span></td>
+                <td>AC7</td>
                 <td>0.88</td>
-                <td>-</td>
-                <td>-</td>
+                <td>Expands the attack surface by adding a mutable artifact containing secrets and unrestricted access, potentially allowing malicious images to be introduced.</td>
+                <td>Review and limit the imageRef data, remove secret‑containing fields, enforce least‑privilege capabilities, and ensure seccomp profile and memory requests are defined.</td>
             </tr>
 
 
@@ -194,11 +194,11 @@
                     <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/777d7ddc17fd9783570b3a1d41b9c32baba2b8d8" target="_blank">777d7ddc</a></span>
                     <div class="file-path">staging/src/k8s.io/api/testdata/v1.34.0/core.v1.Pod.after_roundtrip.yaml</div>
                 </td>
-                <td><span class="badge sev-unknown">UNKNOWN</span></td>
-                <td>AC6</td>
+                <td><span class="badge sev-high">HIGH</span></td>
+                <td>AC7</td>
                 <td>0.88</td>
-                <td>-</td>
-                <td>-</td>
+                <td>Expands the attack surface by adding a mutable artifact containing secrets and unrestricted access, potentially allowing malicious images to be introduced.</td>
+                <td>Review and limit the imageRef data, remove secret‑containing fields, enforce least‑privilege capabilities, and ensure seccomp profile and memory requests are defined.</td>
             </tr>
 
 
@@ -208,11 +208,11 @@
                     <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
                     <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces0.yaml</div>
                 </td>
-                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td><span class="badge sev-high">HIGH</span></td>
                 <td>AC9</td>
                 <td>0.83</td>
-                <td>-</td>
-                <td>-</td>
+                <td>Allows pods to run with reduced isolation, increasing risk of privilege escalation and exposure to untrusted workloads.</td>
+                <td>Re‑enable UserNamespaces or apply alternative isolation controls, enforce seccomp profile, and avoid privileged capabilities.</td>
             </tr>
 
 
@@ -222,11 +222,11 @@
                     <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
                     <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces1.yaml</div>
                 </td>
-                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td><span class="badge sev-high">HIGH</span></td>
                 <td>AC9</td>
                 <td>0.83</td>
-                <td>-</td>
-                <td>-</td>
+                <td>Allows pods to run with reduced isolation, increasing risk of privilege escalation and exposure to untrusted workloads.</td>
+                <td>Re‑enable UserNamespaces or apply alternative isolation controls, enforce seccomp profile, and avoid privileged capabilities.</td>
             </tr>
 
 
@@ -236,11 +236,11 @@
                     <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/af70ebcbf505bd9c2b879a8a7081724435a9fb06" target="_blank">af70ebcb</a></span>
                     <div class="file-path">staging/src/k8s.io/pod-security-admission/test/testdata/baseline/v1.35/fail/hostnamespaces2.yaml</div>
                 </td>
-                <td><span class="badge sev-unknown">UNKNOWN</span></td>
+                <td><span class="badge sev-high">HIGH</span></td>
                 <td>AC9</td>
                 <td>0.83</td>
-                <td>-</td>
-                <td>-</td>
+                <td>Allows pods to run with reduced isolation, increasing risk of privilege escalation and exposure to untrusted workloads.</td>
+                <td>Re‑enable UserNamespaces or apply alternative isolation controls, enforce seccomp profile, and avoid privileged capabilities.</td>
             </tr>
 
         </tbody>
@@ -249,7 +249,7 @@
 
     <h2>Limitations</h2>
     <ul>
-        <li>None reported.</li>
+        <li>Diff excerpts are empty, so analysis relies on scanner findings and label changes.</li><li>Exact resource identifiers are not provided, limiting precise mapping.</li>
     </ul>
     <h2>Ignored Findings</h2>
     <p>0 findings were explicitly ignored by the LLM output.</p>

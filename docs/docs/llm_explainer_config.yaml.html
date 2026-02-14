@@ -20,7 +20,7 @@
     <h1>llm_explainer_config.yaml</h1>
     <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
   </div>
-  <div class="meta">Total Lines: 45 | Category: Config File</div>
+  <div class="meta">Total Lines: 47 | Category: Config File</div>
   <div class="wrap">
     <pre><code>llm_explainer:
   # Enable/disable LLM stage
@@ -35,7 +35,9 @@
 
   # Generation controls
   timeout_seconds: 30
-  max_output_tokens: 1800
+  max_output_tokens: 2600
+  # Token cap used when batch output is missing/truncated and per-item fallback is invoked.
+  item_max_output_tokens: 900
   temperature: 0.2
 
   # Model routing
