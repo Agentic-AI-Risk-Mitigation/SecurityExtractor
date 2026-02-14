@@ -1,0 +1,214 @@
+# attack_classes.yaml -- AC1-AC11 taxonomy.
+#
+# Converted from: data/IaC_attack_classes.xlsx
+# Python source:  monitor/models/attack_classes.py
+#
+# This file is the single source of truth for attack class definitions.
+# Related configuration split into separate files:
+#   - stride_categories.yaml  -- STRIDE threat model categories
+#   - rule_severity.yaml      -- Checkov rule ID -> severity mapping
+
+# Classes directly detectable in K8S YAML (prototype scope)
+prototype_scope:
+  - AC1
+  - AC2
+  - AC3
+  - AC4
+  - AC5
+  - AC6
+  - AC7
+  - AC9
+
+attack_classes:
+
+  - id: AC1
+    name: "Secret Exposure"
+    description: >-
+      Credentials, tokens, or keys exposed in IaC manifests
+      (ConfigMaps, env vars, hardcoded strings).
+    stride:
+      - "Information Disclosure"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_35"
+    example_signals:
+      - "Hardcoded password in ConfigMap data field"
+      - "Secret value in plain env var instead of secretKeyRef"
+      - "Base64 token embedded directly in manifest"
+    cwe_range: "CWE-200, CWE-312, CWE-798"
+
+  - id: AC2
+    name: "Overly Permissive IAM/RBAC"
+    description: >-
+      Broad or wildcard RBAC bindings granting excessive cluster privileges.
+    stride:
+      - "Elevation of Privilege"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_41"
+      - "CKV_K8S_49"
+    example_signals:
+      - "ClusterRoleBinding to cluster-admin"
+      - "Wildcard verbs ['*'] in Role rules"
+      - "Wildcard resources ['*'] in ClusterRole"
+    cwe_range: "CWE-250, CWE-269"
+
+  - id: AC3
+    name: "Internet Exposure"
+    description: >-
+      Services or workloads reachable from the public internet
+      without adequate controls.
+    stride:
+      - "Spoofing"
+      - "Information Disclosure"
+    k8s_relevant: true
+    checkov_rules: []           # Macro View only -- no built-in Checkov rule
+    example_signals:
+      - "Service type changed from ClusterIP to LoadBalancer"
+      - "Ingress without authentication annotation"
+      - "NodePort exposing kube-system workload"
+    cwe_range: "CWE-284, CWE-668"
+
+  - id: AC4
+    name: "Network Segmentation & Egress Control Gaps"
+    description: >-
+      Missing or overly permissive NetworkPolicies allowing lateral
+      movement or uncontrolled egress.
+    stride:
+      - "Tampering"
+      - "Elevation of Privilege"
+    k8s_relevant: true
+    checkov_rules: []           # Macro View only
+    example_signals:
+      - "NetworkPolicy deleted, removing ingress/egress restrictions"
+      - "Allow-all egress policy ({} podSelector)"
+      - "No NetworkPolicy governs pods in namespace"
+    cwe_range: "CWE-284, CWE-441"
+
+  - id: AC5
+    name: "Weak Encryption & TLS"
+    description: >-
+      Missing or disabled TLS on public-facing endpoints;
+      plaintext data flows.
+    stride:
+      - "Tampering"
+      - "Information Disclosure"
+    k8s_relevant: true
+    checkov_rules: []           # custom rules needed
+    example_signals:
+      - "Ingress TLS block removed"
+      - "ssl-redirect annotation set to false"
+      - "HTTP backend without TLS termination"
+    cwe_range: "CWE-311, CWE-319"
+
+  - id: AC6
+    name: "Workload Privilege Escalation"
+    description: >-
+      Container security context allows privilege escalation, root,
+      host access, or dangerous capabilities.
+    stride:
+      - "Elevation of Privilege"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_1"            # privileged container
+      - "CKV_K8S_6"            # root user
+      - "CKV_K8S_4"            # hostNetwork
+      - "CKV_K8S_17"           # hostPID
+      - "CKV_K8S_16"           # hostIPC
+      - "CKV_K8S_20"           # allowPrivilegeEscalation
+      - "CKV_K8S_25"           # capabilities ADD
+    example_signals:
+      - "privileged: true in securityContext"
+      - "runAsUser: 0 (root)"
+      - "hostNetwork: true + hostPID: true"
+      - "allowPrivilegeEscalation: true"
+      - "capabilities: add [SYS_ADMIN]"
+    cwe_range: "CWE-250, CWE-269, CWE-272"
+
+  - id: AC7
+    name: "Supply Chain & Artifact Integrity"
+    description: >-
+      Container images with mutable tags or missing digest pinning.
+    stride:
+      - "Tampering"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_14"           # image tag is :latest
+      - "CKV_K8S_15"           # image digest pinning
+    example_signals:
+      - "Image tag changed from @sha256:... to :latest"
+      - "Unpinned image tag without digest"
+      - "Image from untrusted registry"
+    cwe_range: "CWE-494, CWE-829"
+
+  - id: AC8
+    name: "IaC Module / Dependency Integrity"
+    description: >-
+      Untrusted or unversioned Helm chart references or Kustomize bases.
+    stride:
+      - "Tampering"
+    k8s_relevant: false         # Helm only -- stretch goal
+    checkov_rules: []
+    example_signals:
+      - "Helm dependency without version pin"
+      - "Kustomize remote base without commit ref"
+    cwe_range: "CWE-494, CWE-829"
+
+  - id: AC9
+    name: "Insecure Defaults & Hardening Gaps"
+    description: >-
+      Workloads deployed without security context, resource limits,
+      probes, or non-default service account.
+    stride:
+      - "Elevation of Privilege"
+      - "Information Disclosure"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_8"            # liveness probe
+      - "CKV_K8S_9"            # readiness probe
+      - "CKV_K8S_12"           # capabilities not dropped
+      - "CKV_K8S_22"           # readOnlyRootFilesystem
+      - "CKV_K8S_28"           # resource limits
+      - "CKV_K8S_37"           # default service account
+      - "CKV_K8S_21"           # default namespace
+      - "CKV_K8S_23"           # seccomp profile
+    example_signals:
+      - "New Deployment with no securityContext block"
+      - "No resource limits or requests"
+      - "Using default ServiceAccount"
+      - "No readOnlyRootFilesystem"
+    cwe_range: "CWE-276, CWE-1188"
+
+  - id: AC10
+    name: "Auditability & Monitoring Gaps"
+    description: >-
+      Missing or weakened audit logging, monitoring config,
+      or observability resources.
+    stride:
+      - "Repudiation"
+    k8s_relevant: true
+    checkov_rules: []           # custom rules needed
+    example_signals:
+      - "Audit policy weakened or removed"
+      - "Logging sidecar removed from deployment"
+      - "Prometheus scrape annotation removed"
+    cwe_range: "CWE-778, CWE-223"
+
+  - id: AC11
+    name: "Availability & Resilience Misconfiguration"
+    description: >-
+      Missing probes, resource limits, PodDisruptionBudgets,
+      or replica counts that affect availability.
+    stride:
+      - "Denial of Service"
+    k8s_relevant: true
+    checkov_rules:
+      - "CKV_K8S_8"            # liveness probe (shared with AC9)
+      - "CKV_K8S_9"            # readiness probe (shared with AC9)
+      - "CKV_K8S_28"           # resource limits (shared with AC9)
+    example_signals:
+      - "Liveness/readiness probes removed"
+      - "replicas set to 1 in production"
+      - "No PodDisruptionBudget for critical workload"
+      - "Resource limits removed"
+    cwe_range: "CWE-400, CWE-770"

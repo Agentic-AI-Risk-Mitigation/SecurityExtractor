@@ -1,0 +1,50 @@
+# k8s_kind_map.yaml -- Kubernetes resource kind to PyTM element kind mapping.
+#
+# Maps each K8S resource type to a lightweight PyTM-style element category.
+# Used by PyTMGenerator to build threat model elements from parsed YAML.
+#
+# PyTM element kinds:
+#   Process        -- compute workloads (pods, deployments, etc.)
+#   Dataflow       -- network traffic carriers (services, ingress)
+#   Datastore      -- persistent or configuration data (secrets, configmaps)
+#   Boundary       -- network/namespace boundaries (network policies)
+#   Actor          -- identities and RBAC bindings (service accounts, roles)
+#   ExternalEntity -- auto-generated for public-facing resources
+
+# K8S resource kind -> PyTM element kind
+kind_map:
+  # Workloads -> Process
+  Deployment:          Process
+  Pod:                 Process
+  DaemonSet:           Process
+  StatefulSet:         Process
+  CronJob:             Process
+  Job:                 Process
+  ReplicaSet:          Process
+  # Network -> Dataflow
+  Service:             Dataflow
+  Ingress:             Dataflow
+  # Data -> Datastore
+  Secret:              Datastore
+  ConfigMap:           Datastore
+  PersistentVolumeClaim: Datastore
+  # Boundaries -> Boundary
+  NetworkPolicy:       Boundary
+  Namespace:           Boundary
+  # Identities -> Actor
+  ServiceAccount:      Actor
+  ClusterRole:         Actor
+  Role:                Actor
+  ClusterRoleBinding:  Actor
+  RoleBinding:         Actor
+
+# K8S kinds that are workloads (have pod templates with containers).
+# Used by label inference to navigate pod specs.
+workload_kinds:
+  - Deployment
+  - Pod
+  - DaemonSet
+  - StatefulSet
+  - CronJob
+  - Job
+  - ReplicaSet

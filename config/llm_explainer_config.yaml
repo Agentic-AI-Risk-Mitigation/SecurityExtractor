@@ -1,0 +1,45 @@
+llm_explainer:
+  # Enable/disable LLM stage
+  enabled: true
+
+  # Prompt + selection
+  top_n: 5
+  prompt_template: "config/llm_prompt_template.txt"
+  # Optional alternative to `prompt_template`:
+  # prompt_template_text: |
+  #   You are a strict JSON security explainer...
+
+  # Generation controls
+  timeout_seconds: 30
+  max_output_tokens: 1800
+  temperature: 0.2
+
+  # Model routing
+  model: "openrouter/aurora-alpha"
+  max_model_attempts: 4
+  allow_paid_fallback: true
+  discover_free_models: false
+  max_discovered_models: 6
+
+  # Fallbacks
+  paid_fallback_models:
+    - "openrouter/aurora-alpha"
+    - "openrouter/auto"
+
+  fallback_models:
+    - "openrouter/auto"
+    - "nousresearch/hermes-3-llama-3.1-405b:free"
+    - "deepseek/deepseek-r1-0528:free"
+    - "qwen/qwen3-coder:free"
+    - "mistralai/mistral-small-3.1-24b-instruct:free"
+
+  free_fallback_models:
+    - "meta-llama/llama-3.3-70b-instruct:free"
+    - "deepseek/deepseek-r1-0528:free"
+    - "qwen/qwen3-coder:free"
+    - "mistralai/mistral-small-3.1-24b-instruct:free"
+
+  # OpenRouter endpoint settings
+  base_url: "https://openrouter.ai/api/v1"
+  http_referer: "http://localhost:5000"
+  app_title: "SecurityExtractorPipeline"
