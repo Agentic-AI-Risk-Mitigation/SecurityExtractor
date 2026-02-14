@@ -252,7 +252,7 @@
     <h1>Security Posture Comparison Report</h1>
     <p class="subtitle">
         22 deltas analyzed |
-        Generated: 2026-02-14 22:18 |
+        Generated: 2026-02-14 22:39 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/comparison_results.json
     </p>
 
@@ -311,7 +311,7 @@
         </div>
     </div>
     <p class="subtitle">
-        Generated: 2026-02-14T22:18:21.801144 |
+        Generated: 2026-02-14T22:39:26.428558 |
         Snapshot: /Users/wolowskv/PycharmProjects/SecurityExtractor/data/kubernetes
     </p>
     <div><span class='badge badge-severity sev-High'>High: 4420</span> <span class='badge badge-severity sev-Low'>Low: 30</span> <span class='badge badge-severity sev-Medium'>Medium: 3068</span> <span class='badge badge-severity sev-Very High'>Very High: 1518</span></div>
@@ -323,14 +323,14 @@
     <div class="section-note">
         Status: <strong>ok</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        Generated: 2026-02-14T22:18:21.897121 |
+        Generated: 2026-02-14T22:39:26.525790 |
         Overall Posture: <strong>no_material_change</strong> |
         Items: <strong>4</strong>
     </div>
-    <p>The latest commit bumps the CSI driver image versions from v1.17.0 to v1.17.1 in four test manifests. No new security issues were introduced and the existing findings (default namespace usage and container capability settings) remain unchanged, resulting in no material change to the overall security posture.</p>
-    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>The image version bump does not alter the namespace configuration, so the attack surface related to default namespace usage remains the same.</td><td>Update the manifest to specify a dedicated, non‑default namespace and remove any resources that rely on the default namespace.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>Changing the container image version does not affect the namespace choice, so the security risk stays unchanged.</td><td>Refactor the manifest to deploy into a named namespace instead of the default namespace.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The image version update does not modify these security‑relevant settings, so the potential for privilege escalation remains unchanged.</td><td>Remove unnecessary capabilities from the security spec, set the seccomp profile to `runtime/default` (or `docker/default`), and add a liveness probe to improve runtime health monit</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The version bump does not address these configuration weaknesses, so the attack surface remains unchanged.</td><td>Apply the same remediation as the driver pod: drop unnecessary capabilities, enforce a default seccomp profile, and configure a liveness probe.</td></tr></tbody></table>
+    <p>The recent commits only bump the CSI driver container image tags to version v1.17.1 across four test manifests. No new security findings were introduced and existing low‑ and medium‑severity Checkov issues remain unchanged, resulting in no material change to the security posture.</p>
+    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>The attack surface, trust boundaries, and data flows remain unchanged; the newer image may contain bug fixes but does not affect security configuration.</td><td>Continue to monitor upstream releases and update images promptly; no immediate remediation required.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No change to attack surface or data flow; the version bump is a maintenance update.</td><td>Maintain regular image updates and track any security advisories for the hostpath plugin.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The change does not alter the container&#x27;s capabilities, seccomp profile, or liveness probe configuration, so the attack surface stays the same.</td><td>Review the existing CKV_K8S_37 and CKV_K8S_31 findings and remediate them to improve hardening.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The update does not affect the container&#x27;s security context, capabilities, or health checks; the overall posture remains unchanged.</td><td>Address the existing CKV_K8S_37 and CKV_K8S_31 hardening recommendations to reduce risk.</td></tr></tbody></table>
     <h2>LLM Limitations</h2>
-    <ul><li>None reported.</li></ul>
+    <ul><li>Analysis is limited to the visible diff excerpts and Checkov findings; any hidden configuration changes are not considered.</li><li>Threat model deltas are zero, so impact assessment relies solely on the diff and static analysis.</li></ul>
 
 
     <h2>Attack Class Distribution</h2>

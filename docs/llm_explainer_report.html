@@ -126,7 +126,7 @@
 <body>
     <h1>LLM Security Explanation Report</h1>
     <p class="subtitle">
-        Generated: 2026-02-14 22:18 |
+        Generated: 2026-02-14 22:39 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
     </p>
 
@@ -152,11 +152,11 @@
     <div class="section-note">
         Provider: <strong>openrouter</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        LLM generated_at: 2026-02-14T22:18:21.897121
+        LLM generated_at: 2026-02-14T22:39:26.525790
     </div>
 
     <h2>Executive Summary</h2>
-    <p>The latest commit bumps the CSI driver image versions from v1.17.0 to v1.17.1 in four test manifests. No new security issues were introduced and the existing findings (default namespace usage and container capability settings) remain unchanged, resulting in no material change to the overall security posture.</p>
+    <p>The recent commits only bump the CSI driver container image tags to version v1.17.1 across four test manifests. No new security findings were introduced and existing low‑ and medium‑severity Checkov issues remain unchanged, resulting in no material change to the security posture.</p>
 
     <h2>Explained Findings</h2>
     
@@ -183,8 +183,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The image version bump does not alter the namespace configuration, so the attack surface related to default namespace usage remains the same.</td>
-                <td>Update the manifest to specify a dedicated, non‑default namespace and remove any resources that rely on the default namespace.</td>
+                <td>The attack surface, trust boundaries, and data flows remain unchanged; the newer image may contain bug fixes but does not affect security configuration.</td>
+                <td>Continue to monitor upstream releases and update images promptly; no immediate remediation required.</td>
             </tr>
 
 
@@ -197,8 +197,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>Changing the container image version does not affect the namespace choice, so the security risk stays unchanged.</td>
-                <td>Refactor the manifest to deploy into a named namespace instead of the default namespace.</td>
+                <td>No change to attack surface or data flow; the version bump is a maintenance update.</td>
+                <td>Maintain regular image updates and track any security advisories for the hostpath plugin.</td>
             </tr>
 
 
@@ -211,8 +211,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The image version update does not modify these security‑relevant settings, so the potential for privilege escalation remains unchanged.</td>
-                <td>Remove unnecessary capabilities from the security spec, set the seccomp profile to `runtime/default` (or `docker/default`), and add a liveness probe to improve runtime health monitoring.</td>
+                <td>The change does not alter the container&#x27;s capabilities, seccomp profile, or liveness probe configuration, so the attack surface stays the same.</td>
+                <td>Review the existing CKV_K8S_37 and CKV_K8S_31 findings and remediate them to improve hardening.</td>
             </tr>
 
 
@@ -225,8 +225,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The version bump does not address these configuration weaknesses, so the attack surface remains unchanged.</td>
-                <td>Apply the same remediation as the driver pod: drop unnecessary capabilities, enforce a default seccomp profile, and configure a liveness probe.</td>
+                <td>The update does not affect the container&#x27;s security context, capabilities, or health checks; the overall posture remains unchanged.</td>
+                <td>Address the existing CKV_K8S_37 and CKV_K8S_31 hardening recommendations to reduce risk.</td>
             </tr>
 
         </tbody>
@@ -235,7 +235,7 @@
 
     <h2>Limitations</h2>
     <ul>
-        <li>None reported.</li>
+        <li>Analysis is limited to the visible diff excerpts and Checkov findings; any hidden configuration changes are not considered.</li><li>Threat model deltas are zero, so impact assessment relies solely on the diff and static analysis.</li>
     </ul>
     <h2>Ignored Findings</h2>
     <p>0 findings were explicitly ignored by the LLM output.</p>

@@ -23,7 +23,7 @@
   <div class="meta">Total Lines: 137 | Category: Result File</div>
   <div class="wrap">
     <pre><code>{
-  &quot;saved_at&quot;: &quot;2026-02-14T22:18:04.361139&quot;,
+  &quot;saved_at&quot;: &quot;2026-02-14T22:39:08.390959&quot;,
   &quot;pipeline_settings&quot;: {
     &quot;repository&quot;: {
       &quot;path&quot;: &quot;data/kubernetes&quot;,
@@ -50,11 +50,15 @@
       &quot;config_path&quot;: &quot;config/llm_explainer_config.yaml&quot;,
       &quot;enabled&quot;: true,
       &quot;top_n&quot;: 5,
+      &quot;prompt_template&quot;: &quot;config/llm_prompt_template.txt&quot;,
       &quot;timeout_seconds&quot;: 30,
       &quot;max_output_tokens&quot;: 1800,
       &quot;temperature&quot;: 0.2,
       &quot;model&quot;: &quot;openrouter/aurora-alpha&quot;,
       &quot;max_model_attempts&quot;: 4,
+      &quot;allow_paid_fallback&quot;: true,
+      &quot;discover_free_models&quot;: false,
+      &quot;max_discovered_models&quot;: 6,
       &quot;paid_fallback_models&quot;: [
         &quot;openrouter/aurora-alpha&quot;,
         &quot;openrouter/auto&quot;
@@ -72,13 +76,9 @@
         &quot;qwen/qwen3-coder:free&quot;,
         &quot;mistralai/mistral-small-3.1-24b-instruct:free&quot;
       ],
-      &quot;discover_free_models&quot;: false,
-      &quot;max_discovered_models&quot;: 6,
-      &quot;allow_paid_fallback&quot;: true,
       &quot;base_url&quot;: &quot;https://openrouter.ai/api/v1&quot;,
       &quot;http_referer&quot;: &quot;http://localhost:5000&quot;,
-      &quot;app_title&quot;: &quot;SecurityExtractorPipeline&quot;,
-      &quot;prompt_template&quot;: &quot;config/llm_prompt_template.txt&quot;
+      &quot;app_title&quot;: &quot;SecurityExtractorPipeline&quot;
     },
     &quot;comparison&quot;: {
       &quot;weights&quot;: {
@@ -142,19 +142,19 @@
     &quot;logging&quot;: {
       &quot;level&quot;: &quot;INFO&quot;,
       &quot;format&quot;: &quot;%(asctime)s [%(name)s] %(levelname)s %(message)s&quot;,
-      &quot;run_log_dir&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804&quot;,
+      &quot;run_log_dir&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908&quot;,
       &quot;log_files&quot;: {
-        &quot;pipeline_full&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/pipeline_full.log&quot;,
-        &quot;pipeline_runner&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/pipeline_runner.log&quot;,
-        &quot;security_extraction&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/security_extraction.log&quot;,
-        &quot;checkov&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/checkov.log&quot;,
-        &quot;delta_threat_model&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/delta_threat_model.log&quot;,
-        &quot;full_pytm&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/full_pytm.log&quot;,
-        &quot;llm_explainer&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/llm_explainer.log&quot;,
-        &quot;github_pages&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/github_pages.log&quot;,
-        &quot;overview_generation&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/overview_generation.log&quot;,
-        &quot;comparison&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/comparison.log&quot;,
-        &quot;reporting&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_221804/reporting.log&quot;
+        &quot;pipeline_full&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/pipeline_full.log&quot;,
+        &quot;pipeline_runner&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/pipeline_runner.log&quot;,
+        &quot;security_extraction&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/security_extraction.log&quot;,
+        &quot;checkov&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/checkov.log&quot;,
+        &quot;delta_threat_model&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/delta_threat_model.log&quot;,
+        &quot;full_pytm&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/full_pytm.log&quot;,
+        &quot;llm_explainer&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/llm_explainer.log&quot;,
+        &quot;github_pages&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/github_pages.log&quot;,
+        &quot;overview_generation&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/overview_generation.log&quot;,
+        &quot;comparison&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/comparison.log&quot;,
+        &quot;reporting&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_223908/reporting.log&quot;
       }
     }
   }

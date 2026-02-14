@@ -20,7 +20,7 @@
     <h1>threat_model_config.yaml</h1>
     <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
   </div>
-  <div class="meta">Total Lines: 129 | Category: Config File</div>
+  <div class="meta">Total Lines: 168 | Category: Config File</div>
   <div class="wrap">
     <pre><code># threat_model_config.yaml -- Threat model detection rules and label definitions.
 #
@@ -150,7 +150,46 @@ secret_pattern: &quot;(?i)(password|secret|token|api.?key|credential|private.?ke
 readonly_verbs:
   - &quot;get&quot;
   - &quot;list&quot;
-  - &quot;watch&quot;</code></pre>
+  - &quot;watch&quot;
+
+# ---------------------------------------------------------------------------
+# Defaults block for semantic fallbacks.
+#
+# These values are used if top-level keys above are missing.
+# ---------------------------------------------------------------------------
+defaults:
+  secret_pattern: &quot;(?i)(password|secret|token|api.?key|credential|private.?key|auth)&quot;
+  readonly_verbs:
+    - &quot;get&quot;
+    - &quot;list&quot;
+    - &quot;watch&quot;
+
+# ---------------------------------------------------------------------------
+# Per change-type default finding semantics.
+#
+# These defaults are used for change types that are not defined via
+# label_flips/risky_combos and previously had fixed hardcoded values.
+# ---------------------------------------------------------------------------
+change_type_defaults:
+  NEW_UNHARDENED:
+    attack_class: &quot;AC9&quot;
+    severity: &quot;MEDIUM&quot;
+
+  BOUNDARY_REMOVED:
+    attack_class: &quot;AC4&quot;
+    severity: &quot;HIGH&quot;
+
+  BOUNDARY_ADDED:
+    attack_class: &quot;AC4&quot;
+    severity: &quot;LOW&quot;
+
+  ELEMENT_ADDED:
+    attack_class: &quot;&quot;
+    severity: &quot;INFO&quot;
+
+  ELEMENT_REMOVED:
+    attack_class: &quot;&quot;
+    severity: &quot;INFO&quot;</code></pre>
     
   </div>
 </body>
