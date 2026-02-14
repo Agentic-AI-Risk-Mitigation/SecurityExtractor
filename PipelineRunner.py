@@ -119,6 +119,7 @@ CSI_THRESHOLD = 0.30  # Commit of Security Interest threshold
 
 # --- GitHub Pages ---
 GHPAGES_ENABLED = True
+GHPAGES_CONFIG_PATH = "config/github_pages_config.yaml"
 GHPAGES_SITE_DIR = "docs"
 GHPAGES_INDEX_SOURCE = "pipeline_overview.html"
 GHPAGES_INCLUDE_FILES = [
@@ -128,6 +129,7 @@ GHPAGES_INCLUDE_FILES = [
     "llm_explainer_report.html",
 ]
 GHPAGES_INCLUDE_DIRS = ["docs"]
+GHPAGES_VIEWER_MAX_LINES = 1000
 GHPAGES_AUTO_COMMIT = True
 GHPAGES_AUTO_PUSH = True
 GHPAGES_COMMIT_MESSAGE = "chore(pages): update security pipeline site artifacts"
@@ -219,10 +221,12 @@ def _build_pipeline_cfg() -> dict:
         },
         "github_pages": {
             "enabled": GHPAGES_ENABLED,
+            "config_path": GHPAGES_CONFIG_PATH,
             "site_dir": GHPAGES_SITE_DIR,
             "index_source": GHPAGES_INDEX_SOURCE,
             "include_files": GHPAGES_INCLUDE_FILES,
             "include_dirs": GHPAGES_INCLUDE_DIRS,
+            "viewer_max_lines": GHPAGES_VIEWER_MAX_LINES,
             "auto_commit": GHPAGES_AUTO_COMMIT,
             "auto_push": GHPAGES_AUTO_PUSH,
             "commit_message": GHPAGES_COMMIT_MESSAGE,
@@ -281,6 +285,22 @@ def _merge_llm_explainer_cfg(pipeline_cfg: dict) -> None:
 
     for key, value in overrides.items():
         llm_cfg[key] = value
+
+
+def _merge_github_pages_cfg(pipeline_cfg: dict) -> None:
+    """Overlay github_pages settings from YAML config file if present."""
+    gh_cfg = pipeline_cfg.get("github_pages", {})
+    cfg_path = BASE_DIR / gh_cfg.get("config_path", GHPAGES_CONFIG_PATH)
+    if not cfg_path.exists():
+        return
+
+    loaded = _load_yaml(cfg_path)
+    overrides = loaded.get("github_pages", loaded)
+    if not isinstance(overrides, dict):
+        return
+
+    for key, value in overrides.items():
+        gh_cfg[key] = value
 
 
 def _load_jsonl(path: str) -> List[Dict[str, Any]]:
@@ -432,6 +452,7 @@ def main() -> None:
     # Build config from constants
     pipeline_cfg = _build_pipeline_cfg()
     _merge_llm_explainer_cfg(pipeline_cfg)
+    _merge_github_pages_cfg(pipeline_cfg)
 
     # Load attack classes YAML
     ac_cfg = _load_yaml(

@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import html
 import json
 import logging
+import re
 import shutil
 import subprocess
 from datetime import datetime
@@ -44,6 +46,7 @@ class GitHubPagesPublisher:
             )
         )
         self.branch = str(config.get("branch", "main"))
+        self.viewer_max_lines = int(config.get("viewer_max_lines", 1000))
 
     def publish(self, output_dir: str | Path) -> Dict[str, Any]:
         """Copy selected outputs to Pages dir and optionally commit/push."""
@@ -92,6 +95,8 @@ class GitHubPagesPublisher:
             self._write_fallback_index(index_dst)
             missing.append(self.index_source)
 
+        viewer_cfg_result = self._apply_viewer_configuration(output_path)
+
         (self.site_dir / ".nojekyll").write_text("", encoding="utf-8")
 
         metadata = {
@@ -102,6 +107,7 @@ class GitHubPagesPublisher:
             "copied_dirs": copied_dirs,
             "missing_artifacts": missing,
             "index_source": self.index_source,
+            **viewer_cfg_result,
         }
         meta_path = self.site_dir / "site_metadata.json"
         meta_path.write_text(
@@ -121,16 +127,123 @@ class GitHubPagesPublisher:
             "missing_artifacts": missing,
             "auto_commit": self.auto_commit,
             "auto_push": self.auto_push,
+            **viewer_cfg_result,
             **commit_info,
         }
         logger.info(
-            "GitHub Pages site prepared at %s (files=%d dirs=%d missing=%d)",
+            "GitHub Pages site prepared at %s (files=%d dirs=%d missing=%d viewer_max_lines=%d viewer_updates=%d)",
             self.site_dir,
             len(copied_files),
             len(copied_dirs),
             len(missing),
+            self.viewer_max_lines,
+            viewer_cfg_result.get("updated_files", 0),
         )
         return result
+
+    def _apply_viewer_configuration(self, output_path: Path) -> Dict[str, Any]:
+        """Apply configured line-limit behavior to pipeline overview/viewer pages."""
+        if self.viewer_max_lines <= 0:
+            return {"viewer_max_lines": self.viewer_max_lines, "updated_files": 0}
+
+        updated_files = 0
+
+        for overview in (
+            self.site_dir / "pipeline_overview.html",
+            self.site_dir / "index.html",
+        ):
+            if overview.exists() and self._rewrite_overview_limit_text(overview):
+                updated_files += 1
+
+        viewer_dir = self.site_dir / "docs"
+        if viewer_dir.exists() and viewer_dir.is_dir():
+            for viewer_file in sorted(viewer_dir.glob("*.html")):
+                source_name = viewer_file.name[:-5]  # strip ".html"
+                source_path = self._resolve_viewer_source(source_name, output_path)
+                if not source_path:
+                    continue
+                if self._rewrite_viewer_file(viewer_file, source_path):
+                    updated_files += 1
+
+        return {"viewer_max_lines": self.viewer_max_lines, "updated_files": updated_files}
+
+    def _rewrite_overview_limit_text(self, html_path: Path) -> bool:
+        text = html_path.read_text(encoding="utf-8", errors="replace")
+        replaced = re.sub(
+            r"truncated to \d+ lines",
+            f"truncated to {self.viewer_max_lines} lines",
+            text,
+        )
+        if replaced == text:
+            return False
+        html_path.write_text(replaced, encoding="utf-8")
+        return True
+
+    def _resolve_viewer_source(
+        self,
+        source_name: str,
+        output_path: Path,
+    ) -> Path | None:
+        candidates = [
+            output_path / source_name,
+            self.repo_root / "config" / source_name,
+            self.repo_root / source_name,
+        ]
+        for candidate in candidates:
+            if candidate.exists() and candidate.is_file():
+                return candidate
+        return None
+
+    def _rewrite_viewer_file(self, viewer_file: Path, source_file: Path) -> bool:
+        source_lines = source_file.read_text(
+            encoding="utf-8",
+            errors="replace",
+        ).splitlines()
+        total_lines = len(source_lines)
+        preview_lines = source_lines[: self.viewer_max_lines]
+        preview_text = "\n".join(html.escape(line) for line in preview_lines)
+
+        page = viewer_file.read_text(encoding="utf-8", errors="replace")
+        updated = page
+
+        updated = re.sub(
+            r"(<span>Total Lines:\s*)([\d,]+)(</span>)",
+            rf"\g<1>{total_lines}\g<3>",
+            updated,
+            count=1,
+        )
+
+        code_block = f"<pre><code>{preview_text}</code></pre>"
+        updated, count = re.subn(
+            r"<pre><code>.*?</code></pre>",
+            code_block,
+            updated,
+            count=1,
+            flags=re.S,
+        )
+        if count == 0:
+            return False
+
+        updated = re.sub(
+            r'\s*<div class="truncation-notice">\(Truncated at .*? lines &mdash; full file has .*? lines\)</div>',
+            "",
+            updated,
+            count=1,
+            flags=re.S,
+        )
+        if total_lines > self.viewer_max_lines:
+            notice = (
+                f"\n    <div class=\"truncation-notice\">"
+                f"(Truncated at {self.viewer_max_lines} lines &mdash; "
+                f"full file has {total_lines} lines)"
+                f"</div>"
+            )
+            updated = updated.replace("</code></pre>", f"</code></pre>{notice}", 1)
+
+        if updated == page:
+            return False
+        viewer_file.write_text(updated, encoding="utf-8")
+        return True
 
     def _write_fallback_index(self, path: Path) -> None:
         links = []
