@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>github_pages_config.yaml - Security Extractor Pipeline</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background:#0d1117; color:#c9d1d9; margin:0; }
+  .header { padding:20px 32px; border-bottom:1px solid #30363d; background:#161b22; display:flex; justify-content:space-between; align-items:center; }
+  h1 { margin:0; font-size:1.2rem; color:#e6edf3; }
+  .back { color:#58a6ff; text-decoration:none; font-size:0.9rem; }
+  .meta { padding:10px 32px; border-bottom:1px solid #30363d; color:#8b949e; font-size:0.85rem; }
+  .wrap { padding:20px 32px; }
+  pre { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:0.8rem; line-height:1.45; }
+  .truncation-notice { margin-top:14px; color:#f0ad4e; border:1px solid #f0ad4e55; background:#1c1f26; border-radius:6px; padding:10px; text-align:center; font-size:0.84rem; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>github_pages_config.yaml</h1>
+    <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
+  </div>
+  <div class="meta">Total Lines: 15 | Category: Config File</div>
+  <div class="wrap">
+    <pre><code>github_pages:
+  # Max number of lines shown in docs/* file-viewer pages.
+  # Set to 0 or a negative value to disable this post-processing step.
+  viewer_max_lines: 1000
+
+  # Fail publish step when required run artifacts are missing in output/.
+  strict_required_artifacts: true
+
+  # Relative paths (from output/) that must exist before publishing.
+  required_artifacts:
+    - &quot;pipeline_overview.html&quot;
+    - &quot;comparison_report.html&quot;
+    - &quot;git_security_deltas_report.html&quot;
+    - &quot;llm_explainer_report.html&quot;
+    - &quot;docs&quot;</code></pre>
+    
+  </div>
+</body>
+</html>
