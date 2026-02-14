@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>threat_model_config.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>threat_model_config.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 129</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># threat_model_config.yaml -- Threat model detection rules and label definitions.
+#
+# Contains all constants used by PyTMGenerator for:
+#   - Security label transitions (label flips) and their attack class mappings
+#   - Risky label combinations
+#   - Hardening label definitions
+#   - Security label catalog
+#   - Secret detection patterns
+#   - RBAC classification constants
+#
+# Source: monitor/models/threat_diff.py + monitor/models/label_inference.py
+
+# ---------------------------------------------------------------------------
+# Label flips: security label transitions that indicate a regression.
+#
+# Each entry defines a (secure -&gt; insecure) transition and the resulting
+# attack class and severity.  When an element&#x27;s labels change from having
+# the &quot;secure&quot; label to having the &quot;insecure&quot; label, a LABEL_FLIP finding
+# is emitted.
+# ---------------------------------------------------------------------------
+label_flips:
+  - secure:       &quot;Private&quot;
+    insecure:     &quot;Public&quot;
+    attack_class: &quot;AC3&quot;
+    severity:     &quot;CRITICAL&quot;
+
+  - secure:       &quot;EncryptedInTransit&quot;
+    insecure:     &quot;UnencryptedInTransit&quot;
+    attack_class: &quot;AC5&quot;
+    severity:     &quot;HIGH&quot;
+
+  - secure:       &quot;VerifiedArtifact&quot;
+    insecure:     &quot;MutableArtifact&quot;
+    attack_class: &quot;AC7&quot;
+    severity:     &quot;HIGH&quot;
+
+  - secure:       &quot;ReadOnly&quot;
+    insecure:     &quot;AdminPath&quot;
+    attack_class: &quot;AC6&quot;
+    severity:     &quot;HIGH&quot;
+
+  - secure:       &quot;Authenticated&quot;
+    insecure:     &quot;Unauthenticated&quot;
+    attack_class: &quot;AC2&quot;
+    severity:     &quot;MEDIUM&quot;
+
+# ---------------------------------------------------------------------------
+# Risky label combinations.
+#
+# When an element has ALL labels in a given combination, and that combination
+# was not present in the before state, a NEW_RISKY_COMBO finding is emitted.
+# ---------------------------------------------------------------------------
+risky_combos:
+  - labels:       [&quot;Public&quot;, &quot;AdminPath&quot;]
+    attack_class: &quot;AC3&quot;
+    severity:     &quot;CRITICAL&quot;
+
+  - labels:       [&quot;Public&quot;, &quot;ContainsSecrets&quot;]
+    attack_class: &quot;AC1&quot;
+    severity:     &quot;CRITICAL&quot;
+
+  - labels:       [&quot;Public&quot;, &quot;Unauthenticated&quot;]
+    attack_class: &quot;AC3&quot;
+    severity:     &quot;HIGH&quot;
+
+  - labels:       [&quot;AdminPath&quot;, &quot;MutableArtifact&quot;]
+    attack_class: &quot;AC7&quot;
+    severity:     &quot;HIGH&quot;
+
+  - labels:       [&quot;Public&quot;, &quot;MutableArtifact&quot;]
+    attack_class: &quot;AC7&quot;
+    severity:     &quot;HIGH&quot;
+
+  - labels:       [&quot;Unrestricted&quot;, &quot;ContainsSecrets&quot;]
+    attack_class: &quot;AC4&quot;
+    severity:     &quot;HIGH&quot;
+
+# ---------------------------------------------------------------------------
+# Hardening labels.
+#
+# If a newly added Process element has NONE of these labels, it is flagged
+# as NEW_UNHARDENED (AC9, MEDIUM).
+# ---------------------------------------------------------------------------
+hardening_labels:
+  - &quot;ReadOnly&quot;
+  - &quot;Authenticated&quot;
+  - &quot;VerifiedArtifact&quot;
+  - &quot;Private&quot;
+  - &quot;EncryptedInTransit&quot;
+
+# ---------------------------------------------------------------------------
+# Security labels catalog (from label_inference.py SecurityLabel enum).
+#
+# These are the labels that the inference engine can assign to elements.
+# Listed here for documentation and validation.
+# ---------------------------------------------------------------------------
+security_labels:
+  - &quot;Public&quot;
+  - &quot;Private&quot;
+  - &quot;Unrestricted&quot;
+  - &quot;ContainsSecrets&quot;
+  - &quot;Authenticated&quot;
+  - &quot;Unauthenticated&quot;
+  - &quot;EncryptedInTransit&quot;
+  - &quot;UnencryptedInTransit&quot;
+  - &quot;AdminPath&quot;
+  - &quot;ReadOnly&quot;
+  - &quot;MutableArtifact&quot;
+  - &quot;VerifiedArtifact&quot;
+
+# ---------------------------------------------------------------------------
+# Secret detection pattern.
+#
+# Regex applied to ConfigMap data keys and values to detect secrets
+# that should not be stored in plain ConfigMaps.
+# ---------------------------------------------------------------------------
+secret_pattern: &quot;(?i)(password|secret|token|api.?key|credential|private.?key|auth)&quot;
+
+# ---------------------------------------------------------------------------
+# Read-only RBAC verbs.
+#
+# If a ClusterRole/Role uses ONLY these verbs (and no wildcards), it is
+# labelled ReadOnly.  Otherwise it gets Authenticated (or AdminPath for
+# wildcard rules).
+# ---------------------------------------------------------------------------
+readonly_verbs:
+  - &quot;get&quot;
+  - &quot;list&quot;
+  - &quot;watch&quot;
+</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

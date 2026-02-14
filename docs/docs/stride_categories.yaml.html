@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>stride_categories.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>stride_categories.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 68</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># stride_categories.yaml -- STRIDE threat model categories.
+#
+# The STRIDE model (Microsoft) classifies threats into six categories.
+# Each attack class (AC1-AC11) maps to one or more of these categories.
+#
+# Reference: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats
+
+categories:
+  - id: &quot;S&quot;
+    name: &quot;Spoofing&quot;
+    description: &gt;-
+      Pretending to be something or someone other than yourself.
+      Violates authentication.
+
+  - id: &quot;T&quot;
+    name: &quot;Tampering&quot;
+    description: &gt;-
+      Modifying data or code without authorisation.
+      Violates integrity.
+
+  - id: &quot;R&quot;
+    name: &quot;Repudiation&quot;
+    description: &gt;-
+      Claiming to have not performed an action.
+      Violates non-repudiation / auditability.
+
+  - id: &quot;I&quot;
+    name: &quot;Information Disclosure&quot;
+    description: &gt;-
+      Exposing information to someone not authorised to see it.
+      Violates confidentiality.
+
+  - id: &quot;D&quot;
+    name: &quot;Denial of Service&quot;
+    description: &gt;-
+      Denying or degrading service to users.
+      Violates availability.
+
+  - id: &quot;E&quot;
+    name: &quot;Elevation of Privilege&quot;
+    description: &gt;-
+      Gaining capabilities without proper authorisation.
+      Violates authorisation.
+
+# Mapping from STRIDE category name to the attack classes it covers.
+# This is the reverse of the per-AC &quot;stride&quot; field in attack_classes.yaml
+# and is provided here for quick lookup.
+stride_to_attack_classes:
+  Spoofing:
+    - AC3
+  Tampering:
+    - AC4
+    - AC5
+    - AC7
+    - AC8
+  Repudiation:
+    - AC10
+  Information Disclosure:
+    - AC1
+    - AC5
+    - AC9
+  Denial of Service:
+    - AC11
+  Elevation of Privilege:
+    - AC2
+    - AC4
+    - AC6
+    - AC9
+</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

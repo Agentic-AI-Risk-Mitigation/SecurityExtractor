@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>comparison_results.json - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #66bb6a22;
+    color: #66bb6a;
+    border: 1px solid #66bb6a44;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>comparison_results.json<span class="badge">RESULT</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 1388</span>
+    <span>Type: JSON</span>
+    <span>Category: Result File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code>[
+  {
+    &quot;commit_sha&quot;: &quot;aa4159c2d2dde5d2e9929974884f12608d7d2d3d&quot;,
+    &quot;file_path&quot;: &quot;vendor/github.com/prometheus/procfs/.golangci.yml&quot;,
+    &quot;commit_message&quot;: &quot;Bump prometheus/common to v0.67.5 and prometheus/procfs to v0.19.2\n\nprometheus/common v0.66.1 -&gt; v0.67.5:\n- Breaking: TextParser must now use NewTextParser() constructor\n- Float/gauge histograms support in expfmt\n- Fixed panic in tlsRoundTripper when CA file missing\n- https://github.com/prometheus/common/compare/v0.66.1...v0.67.5\n\nprometheus/procfs v0.16.1 -&gt; v0.19.2:\n- New: process shared memory, netfilter queue, hung_task metrics\n- Enhanced meminfo (zswap, hugetlb fields)\n- MD raid component devices exposed\n- Fixed ZswappedBytes calculation\n- https://github.com/prometheus/procfs/compare/v0.16.1...v0.19.2\n\nSigned-off-by: Davanum Srinivas &lt;davanum@gmail.com&gt;&quot;,
+    &quot;commit_date&quot;: &quot;2026-02-04T03:25:04&quot;,
+    &quot;author&quot;: &quot;Davanum Srinivas&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;fix&quot;,
+      &quot;exposed&quot;,
+      &quot;tls&quot;
+    ],
+    &quot;checkov_before_count&quot;: 0,
+    &quot;checkov_after_count&quot;: 0,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;&quot;,
+    &quot;composite_score&quot;: 0.075,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [],
+    &quot;labels_after&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;5245587ff79f9e3775606e497a36924bedcd11ee&quot;,
+    &quot;file_path&quot;: &quot;test/compatibility_lifecycle/reference/versioned_feature_list.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Merge pull request #136596 from aramase/aramase/f/kep_5538_stable_impl\n\nMark CSIServiceAccountTokenSecrets feature gate as GA&quot;,
+    &quot;commit_date&quot;: &quot;2026-01-28T23:31:48&quot;,
+    &quot;author&quot;: &quot;Kubernetes Prow Robot&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;secret&quot;,
+      &quot;token&quot;
+    ],
+    &quot;checkov_before_count&quot;: 0,
+    &quot;checkov_after_count&quot;: 0,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;&quot;,
+    &quot;composite_score&quot;: 0.0667,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [],
+    &quot;labels_after&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;d6d215821a8f1572cae80de0198650766e6860e7&quot;,
+    &quot;file_path&quot;: &quot;test/compatibility_lifecycle/reference/versioned_feature_list.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Mark CSIServiceAccountTokenSecrets feature gate as GA\n\nSigned-off-by: Anish Ramasekar &lt;anish.ramasekar@gmail.com&gt;&quot;,
+    &quot;commit_date&quot;: &quot;2026-01-28T21:41:34&quot;,
+    &quot;author&quot;: &quot;Anish Ramasekar&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;secret&quot;,
+      &quot;token&quot;
+    ],
+    &quot;checkov_before_count&quot;: 0,
+    &quot;checkov_after_count&quot;: 0,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [],
+    &quot;threat_finding_count&quot;: 0,
+    &quot;threat_risk_delta&quot;: 0,
+    &quot;threat_findings&quot;: [],
+    &quot;attack_class&quot;: &quot;&quot;,
+    &quot;composite_score&quot;: 0.0667,
+    &quot;posture_direction&quot;: &quot;neutral&quot;,
+    &quot;is_csi&quot;: false,
+    &quot;macro_only&quot;: false,
+    &quot;micro_only&quot;: false,
+    &quot;labels_before&quot;: [],
+    &quot;labels_after&quot;: []
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml&quot;,
+    &quot;commit_message&quot;: &quot;Update the csi-driver-host-path version to 1.17.1\n\nIt fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357&quot;,
+    &quot;commit_date&quot;: &quot;2026-02-10T16:33:26&quot;,
+    &quot;author&quot;: &quot;Jan Safranek&quot;,
+    &quot;keywords_matched&quot;: [
+      &quot;fix&quot;
+    ],
+    &quot;checkov_before_count&quot;: 27,
+    &quot;checkov_after_count&quot;: 27,
+    &quot;checkov_delta&quot;: 0,
+    &quot;checkov_findings_after&quot;: [
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 3,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 104,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 121,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 138,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 155,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_21&quot;,
+        &quot;title&quot;: &quot;The default namespace should not be used&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 172,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_37&quot;,
+        &quot;title&quot;: &quot;Minimize the admission of containers with capabilities assigned&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_31&quot;,
+        &quot;title&quot;: &quot;Ensure that the seccomp profile is set to docker/default or runtime/default&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: []
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_8&quot;,
+        &quot;title&quot;: &quot;Liveness Probe Should be Configured&quot;,
+        &quot;severity&quot;: &quot;LOW&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;,
+          &quot;AC11&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_12&quot;,
+        &quot;title&quot;: &quot;Memory requests should be set&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC9&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_20&quot;,
+        &quot;title&quot;: &quot;Containers should not run with allowPrivilegeEscalation&quot;,
+        &quot;severity&quot;: &quot;HIGH&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC6&quot;
+        ]
+      },
+      {
+        &quot;rule_id&quot;: &quot;CKV_K8S_15&quot;,
+        &quot;title&quot;: &quot;Image Pull Policy should be Always&quot;,
+        &quot;severity&quot;: &quot;MEDIUM&quot;,
+        &quot;line_start&quot;: 189,
+        &quot;attack_classes&quot;: [
+          &quot;AC7&quot;
+        ]
+      },
+</code></pre>
+    <div class="truncation-notice">(Truncated at 200 lines &mdash; full file has 1388 lines)</div>
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

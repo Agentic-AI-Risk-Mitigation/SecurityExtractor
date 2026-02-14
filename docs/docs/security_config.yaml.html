@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>security_config.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>security_config.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 88</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># security_config.yaml
+
+# Vulnerability identifiers and general security terms
+keywords:
+  - &quot;cve-&quot;
+  - &quot;cwe-&quot;
+  - &quot;ghsa-&quot;
+  - &quot;security advisory&quot;
+  - &quot;security bulletin&quot;
+  - &quot;security&quot;
+  - &quot;vulnerability&quot;
+  - &quot;exploit&quot;
+  - &quot;insecure&quot;
+  - &quot;unsafe&quot;
+  - &quot;malicious&quot;
+  - &quot;attack&quot;
+  - &quot;breach&quot;
+  - &quot;compromise&quot;
+  - &quot;fix&quot;
+  - &quot;patch&quot;
+  - &quot;remediate&quot;
+  - &quot;mitigate&quot;
+  - &quot;harden&quot;
+  - &quot;privileged&quot;
+  - &quot;rbac&quot;
+  - &quot;secret&quot;
+  - &quot;credential&quot;
+  - &quot;permission&quot;
+  - &quot;exposed&quot;
+  - &quot;encryption&quot;
+  - &quot;tls&quot;
+  - &quot;ssl&quot;
+  - &quot;password&quot;
+  - &quot;token&quot;
+  - &quot;hardcoded&quot;
+  - &quot;plaintext&quot;
+  - &quot;injection&quot;
+  - &quot;xss&quot;
+  - &quot;csrf&quot;
+  - &quot;bypass&quot;
+  - &quot;overflow&quot;
+  - &quot;escalation&quot;
+  - &quot;disclosure&quot;
+  - &quot;unauthorized&quot;
+
+# File extensions to analyze
+iac_extensions:
+  - &quot;.yaml&quot;
+  - &quot;.yml&quot;
+  - &quot;.json&quot;
+  - &quot;.tf&quot;
+  - &quot;.tfvars&quot;
+
+# Specific filenames to look for
+iac_filenames:
+  - &quot;Dockerfile&quot;
+  - &quot;docker-compose.yml&quot;
+  - &quot;docker-compose.yaml&quot;
+
+# Paths likely containing IaC files (for filtering)
+iac_paths:
+  - &quot;deploy/&quot;
+  - &quot;deployment/&quot;
+  - &quot;manifests/&quot;
+  - &quot;k8s/&quot;
+  - &quot;kubernetes/&quot;
+  - &quot;helm/&quot;
+  - &quot;charts/&quot;
+  - &quot;config/&quot;
+  - &quot;terraform/&quot;
+  - &quot;ansible/&quot;
+  - &quot;docker/&quot;
+  - &quot;cluster/&quot;
+  - &quot;hack/&quot;
+  - &quot;test/fixtures/&quot;
+  - &quot;examples/&quot;
+
+# Patterns to exclude (reduce false positives)
+exclude_patterns:
+  - &quot;bump version&quot;
+  - &quot;update readme&quot;
+  - &quot;typo&quot;
+  - &quot;spelling&quot;
+  - &quot;docs:&quot;
+  - &quot;test:&quot;
+  - &quot;style:&quot;
+  - &quot;chore:&quot;
+  - &quot;refactor:&quot;</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

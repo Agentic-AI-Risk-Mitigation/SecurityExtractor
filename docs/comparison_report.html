@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Comparison Report - Micro vs Macro</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                         Roboto, monospace;
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            color: #1a237e;
+        }
+
+        h2 {
+            font-size: 16px;
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #1a237e;
+            padding-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        /* Summary cards */
+        .cards {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            flex: 1;
+            min-width: 140px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a237e;
+        }
+
+        .card-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card.regression .card-value { color: #c62828; }
+        .card.improvement .card-value { color: #2e7d32; }
+        .card.macro-only .card-value { color: #e65100; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #fff3cd; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-regression {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .badge-improvement {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .badge-neutral {
+            background: #e0e0e0;
+            color: #616161;
+        }
+
+        .badge-csi {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-macro {
+            background: #e8eaf6;
+            color: #283593;
+        }
+
+        .badge-micro {
+            background: #fce4ec;
+            color: #880e4f;
+        }
+
+        .badge-severity {
+            font-size: 9px;
+            padding: 1px 5px;
+        }
+
+        .sev-CRITICAL { background: #b71c1c; color: white; }
+        .sev-HIGH { background: #e53935; color: white; }
+        .sev-MEDIUM { background: #ff9800; color: white; }
+        .sev-LOW { background: #4caf50; color: white; }
+        .sev-INFO { background: #455a64; color: white; }
+        .sev-UNKNOWN { background: #757575; color: white; }
+
+        /* AC table */
+        .ac-bar {
+            height: 14px;
+            background: #1a237e;
+            border-radius: 2px;
+            min-width: 2px;
+        }
+
+        .ac-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Commit info */
+        .commit-sha {
+            font-family: Consolas, Monaco, monospace;
+            font-size: 11px;
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .commit-sha a {
+            color: #1565c0;
+            text-decoration: none;
+        }
+
+        .commit-sha a:hover { text-decoration: underline; }
+
+        .file-path {
+            font-family: Consolas, Monaco, monospace;
+            font-size: 10px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .commit-msg {
+            font-size: 11px;
+            color: #333;
+            margin: 3px 0;
+            word-wrap: break-word;
+        }
+
+        .score-bar {
+            display: inline-block;
+            height: 10px;
+            background: #1a237e;
+            border-radius: 2px;
+            min-width: 2px;
+        }
+
+        .keyword {
+            display: inline-block;
+            background: #fff3e0;
+            color: #e65100;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin: 1px;
+        }
+
+        .finding {
+            font-size: 10px;
+            padding: 2px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .empty {
+            color: #999;
+            font-style: italic;
+            font-size: 11px;
+        }
+
+        .section-note {
+            background: #e8eaf6;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        footer {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Security Posture Comparison Report</h1>
+    <p class="subtitle">
+        22 deltas analyzed |
+        Generated: 2026-02-14 21:47 |
+        Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/comparison_results.json
+    </p>
+
+    
+    <div class="cards">
+        <div class="card">
+            <div class="card-value">22</div>
+            <div class="card-label">Total Deltas</div>
+        </div>
+        <div class="card regression">
+            <div class="card-value">0</div>
+            <div class="card-label">Regressions</div>
+        </div>
+        <div class="card improvement">
+            <div class="card-value">0</div>
+            <div class="card-label">Improvements</div>
+        </div>
+        <div class="card">
+            <div class="card-value">0</div>
+            <div class="card-label">CSI Flagged</div>
+        </div>
+        <div class="card macro-only">
+            <div class="card-value">0</div>
+            <div class="card-label">Macro-Only</div>
+        </div>
+        <div class="card">
+            <div class="card-value">0</div>
+            <div class="card-label">Micro-Only</div>
+        </div>
+    </div>
+    
+    <h2>Native PyTM (Full Snapshot)</h2>
+    <div class="section-note">
+        Repository-wide native pytm execution metadata.
+    </div>
+    <div class="cards">
+        <div class="card">
+            <div class="card-value">5694</div>
+            <div class="card-label">Files Scanned</div>
+        </div>
+        <div class="card">
+            <div class="card-value">5681</div>
+            <div class="card-label">Docs Parsed</div>
+        </div>
+        <div class="card">
+            <div class="card-value">399</div>
+            <div class="card-label">Elements</div>
+        </div>
+        <div class="card">
+            <div class="card-value">67</div>
+            <div class="card-label">Flows</div>
+        </div>
+        <div class="card">
+            <div class="card-value">9036</div>
+            <div class="card-label">Findings</div>
+        </div>
+    </div>
+    <p class="subtitle">
+        Generated: 2026-02-14T21:47:03.640266 |
+        Snapshot: /Users/wolowskv/PycharmProjects/SecurityExtractor/data/kubernetes
+    </p>
+    <div><span class='badge badge-severity sev-High'>High: 4420</span> <span class='badge badge-severity sev-Low'>Low: 30</span> <span class='badge badge-severity sev-Medium'>Medium: 3068</span> <span class='badge badge-severity sev-Very High'>Very High: 1518</span></div>
+    <h2>Native PyTM Top Findings</h2>
+    <table><thead><tr><th style='width:10%'>Severity</th><th style='width:18%'>Threat ID</th><th style='width:22%'>Target</th><th>Description</th></tr></thead><tbody><tr><td><span class='badge badge-severity sev-Very High'>Very High</span></td><td>1</td><td>kube-system/etcd-version-monitor</td><td>Overflow Buffers</td></tr><tr><td><span class='badge badge-severity sev-Medium'>Medium</span></td><td>2</td><td>kube-system/etcd-version-monitor</td><td>Authentication Abuse/ByPass</td></tr><tr><td><span class='badge badge-severity sev-Medium'>Medium</span></td><td>3</td><td>kube-system/etcd-version-monitor</td><td>Double Encoding</td></tr><tr><td><span class='badge badge-severity sev-Medium'>Medium</span></td><td>4</td><td>kube-system/etcd-version-monitor</td><td>Privilege Abuse</td></tr><tr><td><span class='badge badge-severity sev-Very High'>Very High</span></td><td>5</td><td>kube-system/etcd-version-monitor</td><td>Buffer Manipulation</td></tr><tr><td><span class='badge badge-severity sev-Medium'>Medium</span></td><td>6</td><td>kube-system/etcd-version-monitor</td><td>Flooding</td></tr><tr><td><span class='badge badge-severity sev-Medium'>Medium</span></td><td>7</td><td>kube-system/etcd-version-monitor</td><td>Excessive Allocation</td></tr><tr><td><span class='badge badge-severity sev-High'>High</span></td><td>8</td><td>kube-system/etcd-version-monitor</td><td>Format String Injection</td></tr><tr><td><span class='badge badge-severity sev-High'>High</span></td><td>9</td><td>kube-system/etcd-version-monitor</td><td>Client-side Injection-induced Buffer Overflow</td></tr><tr><td><span class='badge badge-severity sev-High'>High</span></td><td>10</td><td>kube-system/etcd-version-monitor</td><td>Command Delimiters</td></tr></tbody></table>
+
+    
+    <h2>LLM Explainer (OpenRouter)</h2>
+    <div class="section-note">
+        Status: <strong>ok</strong> |
+        Model: <strong>openrouter/aurora-alpha</strong> |
+        Generated: 2026-02-14T21:47:03.786712 |
+        Overall Posture: <strong>no_material_change</strong> |
+        Items: <strong>4</strong>
+    </div>
+    <p>Four CI manifest files were updated to bump the hostpath plugin image from version 1.17.0 (or 1.16.1) to 1.17.1. The changes do not introduce new security issues nor resolve existing low‑severity hardening findings, resulting in a neutral security posture.</p>
+    <table><thead><tr><th style='width:5%'>#</th><th style='width:17%'>Commit / File</th><th style='width:8%'>Severity</th><th style='width:10%'>Attack Class</th><th style='width:8%'>Score</th><th style='width:27%'>Security Impact</th><th style='width:25%'>Recommended Action</th></tr></thead><tbody><tr><td>1</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No change to attack surface, trust boundaries, or data flow; the only existing finding is the use of the default namespace, which remains unchanged.</td><td>Consider moving the workload out of the default namespace to address CKV_K8S_21 and keep the image version current.</td></tr><tr><td>2</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</span></td><td><span class='badge badge-severity sev-LOW'>LOW</span></td><td>AC9</td><td>0.05</td><td>No impact on security posture; the low‑severity default‑namespace finding persists.</td><td>Migrate the resource to a dedicated namespace to remediate CKV_K8S_21 and continue tracking image updates.</td></tr><tr><td>3</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>The medium‑severity findings (capabilities assignment and missing seccomp profile) are unchanged, so the attack surface is not reduced.</td><td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to address CKV_K8S_37, CKV_K8S_31, and CKV_K8S_8.</td></tr><tr><td>4</td><td>7d68b9b9<br><span class='file-path'>test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</span></td><td><span class='badge badge-severity sev-MEDIUM'>MEDIUM</span></td><td>AC9</td><td>0.05</td><td>Medium‑severity hardening issues (capabilities and seccomp) persist, leaving the same risk profile.</td><td>Apply the same hardening steps as the driver: drop extra capabilities, enforce a default seccomp profile, and configure a liveness probe.</td></tr></tbody></table>
+    <h2>LLM Limitations</h2>
+    <ul><li>All findings are based on the provided diff and Checkov output; no additional context was available.</li></ul>
+
+
+    <h2>Attack Class Distribution</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width:8%">ID</th>
+                <th style="width:30%">Attack Class</th>
+                <th style="width:8%">Count</th>
+                <th>Distribution</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>AC9</strong></td>
+                <td>Insecure Defaults &amp; Hardening Gaps</td>
+                <td>4</td>
+                <td>
+                    <div class="ac-cell">
+                        <div class="ac-bar"
+                             style="width:200px"></div>
+                    </div>
+                </td>
+            </tr></tbody>
+    </table>
+
+    <h2>Macro-Only Detections</h2>
+    <div class="section-note">
+        These findings were detected by the <strong>Threat Model (Macro View)</strong>
+        but <strong>NOT</strong> by Checkov (Micro View).  They represent gaps in
+        static analysis coverage.
+    </div>
+    <p class="empty">No macro-only detections found.</p>
+
+    <h2>All Correlated Deltas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:20%">Commit / File</th>
+                <th style="width:18%">Micro View (Checkov)</th>
+                <th style="width:22%">Macro View (Threat Model)</th>
+                <th style="width:10%">Attack Class</th>
+                <th style="width:10%">Score</th>
+                <th style="width:10%">Direction</th>
+                <th style="width:10%">Flags</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/aa4159c2d2dde5d2e9929974884f12608d7d2d3d" target="_blank">
+                            aa4159c2</a>
+                    </span>
+                    <div class="commit-msg">Bump prometheus/common to v0.67.5 and prometheus/procfs to v0.19.2
+
+prometheus/common v0.66.1 -&gt; v0.67.5:
+- Breaking: Te</div>
+                    <div class="file-path">vendor/github.com/prometheus/procfs/.golangci.yml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.07</strong><br><span class="score-bar" style="width:7px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/5245587ff79f9e3775606e497a36924bedcd11ee" target="_blank">
+                            5245587f</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136596 from aramase/aramase/f/kep_5538_stable_impl
+
+Mark CSIServiceAccountTokenSecrets feature gate </div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.07</strong><br><span class="score-bar" style="width:6px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/d6d215821a8f1572cae80de0198650766e6860e7" target="_blank">
+                            d6d21582</a>
+                    </span>
+                    <div class="commit-msg">Mark CSIServiceAccountTokenSecrets feature gate as GA
+
+Signed-off-by: Anish Ramasekar &lt;anish.ramasekar@gmail.com&gt;</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.07</strong><br><span class="score-bar" style="width:6px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">
+                            7d68b9b9</a>
+                    </span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/extern</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td><span class="badge badge-neutral">delta: 0</span>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding empty">... and 22 more</div></td>
+                <td><span class="empty">No findings</span></td>
+                <td>AC9<br><span style='font-size:10px;color:#666'>Insecure Defaults &amp; Hardening Gaps</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">
+                            7d68b9b9</a>
+                    </span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/extern</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td><span class="badge badge-neutral">delta: 0</span>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_21</strong> The default namespace should not be used</div>
+<div class="finding empty">... and 22 more</div></td>
+                <td><span class="empty">No findings</span></td>
+                <td>AC9<br><span style='font-size:10px;color:#666'>Insecure Defaults &amp; Hardening Gaps</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">
+                            7d68b9b9</a>
+                    </span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/extern</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</div>
+                </td>
+                <td><span class="badge badge-neutral">delta: 0</span>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_37</strong> Minimize the admission of containers with capabilities assig</div>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_31</strong> Ensure that the seccomp profile is set to docker/default or </div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_8</strong> Liveness Probe Should be Configured</div>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_12</strong> Memory requests should be set</div>
+<div class="finding"><span class="badge badge-severity sev-HIGH">HIGH</span> <strong>CKV_K8S_20</strong> Containers should not run with allowPrivilegeEscalation</div>
+<div class="finding empty">... and 16 more</div></td>
+                <td><span class="empty">No findings</span></td>
+                <td>AC9<br><span style='font-size:10px;color:#666'>Insecure Defaults &amp; Hardening Gaps</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">
+                            7d68b9b9</a>
+                    </span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/extern</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</div>
+                </td>
+                <td><span class="badge badge-neutral">delta: 0</span>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_37</strong> Minimize the admission of containers with capabilities assig</div>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_31</strong> Ensure that the seccomp profile is set to docker/default or </div>
+<div class="finding"><span class="badge badge-severity sev-LOW">LOW</span> <strong>CKV_K8S_8</strong> Liveness Probe Should be Configured</div>
+<div class="finding"><span class="badge badge-severity sev-MEDIUM">MEDIUM</span> <strong>CKV_K8S_12</strong> Memory requests should be set</div>
+<div class="finding"><span class="badge badge-severity sev-HIGH">HIGH</span> <strong>CKV_K8S_20</strong> Containers should not run with allowPrivilegeEscalation</div>
+<div class="finding empty">... and 16 more</div></td>
+                <td><span class="empty">No findings</span></td>
+                <td>AC9<br><span style='font-size:10px;color:#666'>Insecure Defaults &amp; Hardening Gaps</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/5a2578ce0915a7973486c55dd5415026a418f918" target="_blank">
+                            5a2578ce</a>
+                    </span>
+                    <div class="commit-msg">kubelet: promote the CustomCPUCFSQuotaPeriod to GA
+
+Promote the CustomCPUCFSQuotaPeriod gate to GA, turning it enabled b</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/ccb70a6577d7c79391e1d1a25335bb87ffff33b8" target="_blank">
+                            ccb70a65</a>
+                    </span>
+                    <div class="commit-msg">kubelet: deprecate DisableCPUQuotaWithExclusiveCPUs
+
+We missed the proper process initially, it should have
+been set to </div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">
+                            275adf8b</a>
+                    </span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.</div>
+                    <div class="file-path">hack/unwanted-dependencies.json</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">
+                            275adf8b</a>
+                    </span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.</div>
+                    <div class="file-path">vendor/go.opentelemetry.io/otel/.golangci.yml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">
+                            275adf8b</a>
+                    </span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.</div>
+                    <div class="file-path">vendor/go.opentelemetry.io/otel/versions.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/5dd7be6b4fcb0446d309ef5e1c92a68bf275c12b" target="_blank">
+                            5dd7be6b</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136118 from HarshalNeelkamal/ga-external-jwt
+
+Make ExternalServiceAccountTokenSigner GA</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/cb58c79c767ee1348cd59e075fb6248a10f8eef2" target="_blank">
+                            cb58c79c</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136750 from BenTheElder/master-go-1.25.7
+
+update core binaries to go 1.25.7 for CVE fixes</div>
+                    <div class="file-path">build/dependencies.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/cb58c79c767ee1348cd59e075fb6248a10f8eef2" target="_blank">
+                            cb58c79c</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136750 from BenTheElder/master-go-1.25.7
+
+update core binaries to go 1.25.7 for CVE fixes</div>
+                    <div class="file-path">staging/publishing/rules.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/44ff6085cd32c370ed84a53ba756e4ffef5c3603" target="_blank">
+                            44ff6085</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136726 from dims/fix-containerd-ubuntu-dual-install
+
+Fix install-containerd-ubuntu to skip apt when </div>
+                    <div class="file-path">cluster/gce/gci/master.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/44ff6085cd32c370ed84a53ba756e4ffef5c3603" target="_blank">
+                            44ff6085</a>
+                    </span>
+                    <div class="commit-msg">Merge pull request #136726 from dims/fix-containerd-ubuntu-dual-install
+
+Fix install-containerd-ubuntu to skip apt when </div>
+                    <div class="file-path">cluster/gce/gci/node.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/754c108b9654e9c28672b67333d1d04cda883ea0" target="_blank">
+                            754c108b</a>
+                    </span>
+                    <div class="commit-msg">Make ExternalServiceAccountTokenSigner GA</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/67043dca9fb6e5a50c0a0bc27433057f73ae2ad1" target="_blank">
+                            67043dca</a>
+                    </span>
+                    <div class="commit-msg">disable unnecessary Ubuntu services during node bootstrap
+
+Mask and stop services that compete with apt operations or ar</div>
+                    <div class="file-path">cluster/gce/gci/master.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/67043dca9fb6e5a50c0a0bc27433057f73ae2ad1" target="_blank">
+                            67043dca</a>
+                    </span>
+                    <div class="commit-msg">disable unnecessary Ubuntu services during node bootstrap
+
+Mask and stop services that compete with apt operations or ar</div>
+                    <div class="file-path">cluster/gce/gci/node.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/f3de090c6061991aaa63a2b08c3e14ce0ecc7402" target="_blank">
+                            f3de090c</a>
+                    </span>
+                    <div class="commit-msg">fix: introduce metric as stage alpha</div>
+                    <div class="file-path">test/instrumentation/testdata/stable-metrics-list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="commit-sha">
+                        <a href="https://github.com/kubernetes/kubernetes/commit/a53840212694c71f2f37e7fa3fadf6603940a658" target="_blank">
+                            a5384021</a>
+                    </span>
+                    <div class="commit-msg">fix: update golden list of metrics</div>
+                    <div class="file-path">test/instrumentation/testdata/stable-metrics-list.yaml</div>
+                </td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">No findings</span></td>
+                <td><span class="empty">-</span></td>
+                <td><strong>0.05</strong><br><span class="score-bar" style="width:5px"></span></td>
+                <td><span class="badge badge-neutral">neutral</span></td>
+                <td>-</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer>
+        <strong>How to read this report:</strong><br>
+        &bull; <strong>Micro View</strong> = Checkov SAST findings
+            (specific misconfigurations like CKV_K8S_1)<br>
+        &bull; <strong>Macro View</strong> = Threat model findings
+            (high-level posture changes like label flips)<br>
+        &bull; <span class="badge badge-macro">MACRO</span> = detected by
+            threat model only (Checkov blind spot)<br>
+        &bull; <span class="badge badge-micro">MICRO</span> = detected by
+            Checkov only (no threat model counterpart)<br>
+        &bull; <span class="badge badge-csi">CSI</span> = Commit of
+            Security Interest (composite score &ge; threshold)<br>
+        &bull; <strong>Score</strong> = weighted composite of keyword,
+            Checkov, and threat model signals
+    </footer>
+</body>
+</html>

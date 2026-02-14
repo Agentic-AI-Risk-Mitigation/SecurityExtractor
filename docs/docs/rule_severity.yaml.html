@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rule_severity.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>rule_severity.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 37</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># rule_severity.yaml -- Checkov rule ID -&gt; severity mapping.
+#
+# Checkov does not always embed severity in its JSON output, so this file
+# provides a manual mapping used by CheckovScanner to enrich findings.
+#
+# Severity levels: CRITICAL, HIGH, MEDIUM, LOW
+# Default (if a rule is not listed here): MEDIUM
+
+# AC6 - Workload Privilege Escalation
+CKV_K8S_1:  &quot;HIGH&quot;           # privileged container
+CKV_K8S_6:  &quot;HIGH&quot;           # root user
+CKV_K8S_4:  &quot;HIGH&quot;           # hostNetwork
+CKV_K8S_17: &quot;HIGH&quot;           # hostPID
+CKV_K8S_16: &quot;MEDIUM&quot;         # hostIPC
+CKV_K8S_20: &quot;HIGH&quot;           # allowPrivilegeEscalation
+CKV_K8S_25: &quot;MEDIUM&quot;         # capabilities ADD
+
+# AC1 - Secret Exposure
+CKV_K8S_35: &quot;CRITICAL&quot;       # Secrets in ConfigMaps
+
+# AC2 - RBAC
+CKV_K8S_41: &quot;CRITICAL&quot;       # cluster-admin
+CKV_K8S_49: &quot;HIGH&quot;           # broad RBAC
+
+# AC7 - Supply Chain
+CKV_K8S_14: &quot;MEDIUM&quot;         # image :latest
+CKV_K8S_15: &quot;MEDIUM&quot;         # image digest
+
+# AC9 - Insecure Defaults
+CKV_K8S_8:  &quot;LOW&quot;            # liveness probe
+CKV_K8S_9:  &quot;LOW&quot;            # readiness probe
+CKV_K8S_12: &quot;MEDIUM&quot;         # capabilities not dropped
+CKV_K8S_22: &quot;MEDIUM&quot;         # readOnlyRootFilesystem
+CKV_K8S_28: &quot;LOW&quot;            # resource limits
+CKV_K8S_37: &quot;MEDIUM&quot;         # default service account
+CKV_K8S_21: &quot;LOW&quot;            # default namespace
+CKV_K8S_23: &quot;LOW&quot;            # seccomp profile
+</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

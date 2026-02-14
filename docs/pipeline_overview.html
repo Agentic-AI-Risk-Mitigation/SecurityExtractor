@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Extractor Pipeline Overview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  a { color: #4fc3f7; text-decoration: none; transition: color 0.2s; }
+  a:hover { color: #81d4fa; text-decoration: underline; }
+
+  /* ─── Header ─── */
+  .main-header {
+    background: linear-gradient(135deg, #161b22 0%, #1a237e 50%, #0d1117 100%);
+    border-bottom: 2px solid #30363d;
+    padding: 40px 48px;
+    text-align: center;
+  }
+  .main-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #e6edf3;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .main-header .subtitle {
+    color: #8b949e;
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+  .main-header .timestamp {
+    color: #4fc3f7;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  .shield-icon {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
+  /* ─── Navigation ─── */
+  .nav-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 0 48px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-bar a {
+    padding: 14px 20px;
+    color: #8b949e;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-bar a:hover {
+    color: #e6edf3;
+    border-bottom-color: #4fc3f7;
+    text-decoration: none;
+    background: #1c2129;
+  }
+
+  /* ─── Sections ─── */
+  .section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e6edf3;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+  .section-desc {
+    color: #8b949e;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .divider {
+    border: 0;
+    border-top: 1px solid #21262d;
+    margin: 0;
+  }
+
+  /* ─── Component Details Table ─── */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+  }
+  table.pipeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  table.pipeline-table thead {
+    background: #161b22;
+  }
+  table.pipeline-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #e6edf3;
+    border-bottom: 2px solid #30363d;
+    white-space: nowrap;
+  }
+  table.pipeline-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #21262d;
+    vertical-align: top;
+  }
+  table.pipeline-table tr:hover {
+    background: #161b2233;
+  }
+  table.pipeline-table .stage-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    white-space: nowrap;
+  }
+  table.pipeline-table .component-name {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  table.pipeline-table .desc-text {
+    color: #8b949e;
+    font-size: 0.82rem;
+  }
+  table.pipeline-table .file-link {
+    display: inline-block;
+    margin: 2px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+  }
+  table.pipeline-table .file-size {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-left: 4px;
+  }
+
+  /* ─── Card Grids ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card:hover {
+    border-color: #4fc3f7;
+    box-shadow: 0 4px 16px rgba(79, 195, 247, 0.08);
+    transform: translateY(-2px);
+  }
+  .card .card-title {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .card .card-meta {
+    color: #8b949e;
+    font-size: 0.8rem;
+    display: flex;
+    gap: 16px;
+  }
+  .card .card-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+  .card .badge-yaml {
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f733;
+  }
+  .card .badge-json {
+    background: #66bb6a22;
+    color: #66bb6a;
+    border: 1px solid #66bb6a33;
+  }
+  .card .badge-html {
+    background: #ff726622;
+    color: #ff7266;
+    border: 1px solid #ff726633;
+  }
+  .card .badge-txt {
+    background: #ffa72622;
+    color: #ffa726;
+    border: 1px solid #ffa72633;
+  }
+  .card .card-desc {
+    color: #8b949e;
+    font-size: 0.82rem;
+    flex-grow: 1;
+  }
+  .card a.card-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    margin-top: 4px;
+  }
+
+  /* ─── Report Cards ─── */
+  .report-card {
+    background: linear-gradient(135deg, #161b22 0%, #1a1f2e 100%);
+    border: 1px solid #ff726644;
+  }
+  .report-card:hover {
+    border-color: #ff7266;
+    box-shadow: 0 4px 16px rgba(255, 114, 102, 0.1);
+  }
+  .report-card .card-title { color: #ff7266; }
+
+  /* ─── Footer ─── */
+  .main-footer {
+    text-align: center;
+    padding: 28px 48px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 20px;
+  }
+  .main-footer .footer-brand {
+    color: #30363d;
+    font-size: 0.7rem;
+    margin-top: 6px;
+  }
+
+  /* ─── Orchestrator Banner ─── */
+  .orchestrator-banner {
+    background: linear-gradient(135deg, #1a237e33 0%, #16213e 100%);
+    border: 1px solid #4fc3f744;
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .orchestrator-banner .orch-icon {
+    width: 48px;
+    height: 48px;
+    background: #4fc3f722;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .orchestrator-banner .orch-text h3 {
+    color: #e6edf3;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .orchestrator-banner .orch-text h3 code {
+    color: #4fc3f7;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+    background: #4fc3f711;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .orchestrator-banner .orch-text p {
+    color: #8b949e;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="main-header">
+  <h1>
+    <svg class="shield-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="#4fc3f722" stroke="#4fc3f7" stroke-width="1.5"/>
+      <path d="M10 12l2 2 4-4" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Security Extractor Pipeline Overview
+  </h1>
+  <p class="subtitle">Comprehensive security analysis pipeline for Kubernetes IaC repositories</p>
+  <p class="timestamp" id="header-timestamp"></p>
+</header>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="nav-bar">
+  <a href="#components-section">Components</a>
+  <a href="#config-section">Config Files</a>
+  <a href="#results-section">Result Files</a>
+  <a href="#reports-section">HTML Reports</a>
+</nav>
+
+<!-- ═══════════════════ COMPONENTS TABLE ═══════════════════ -->
+<div class="section" id="components-section">
+  <h2 class="section-title">Pipeline Components</h2>
+  <p class="section-desc">All 10 Python components in execution order, with their config inputs and result outputs.</p>
+
+  <div class="orchestrator-banner">
+    <div class="orch-icon">&#9881;</div>
+    <div class="orch-text">
+      <h3>Orchestrator: <code>PipelineRunner.py</code></h3>
+      <p>Master orchestrator &mdash; coordinates all pipeline stages, manages config loading, and handles archiving.</p>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="pipeline-table">
+      <thead>
+        <tr>
+          <th>Stage</th>
+          <th>Component</th>
+          <th>Description</th>
+          <th>Config Files</th>
+          <th>Result Files</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="stage-badge" style="background:#ffa72622;color:#ffa726;border-color:#ffa72644;">Orchestrator</span></td>
+          <td class="component-name">PipelineRunner.py</td>
+          <td class="desc-text">Master orchestrator &mdash; coordinates all pipeline stages, manages config loading, archiving</td>
+          <td>
+            <a href="docs/pipeline_config.yaml.html" class="file-link">pipeline_config.yaml</a><span class="file-size">(1.6 KB)</span><br>
+            <a href="docs/llm_explainer_config.yaml.html" class="file-link">llm_explainer_config.yaml</a><span class="file-size">(1.2 KB)</span>
+          </td>
+          <td>
+            <a href="docs/pipeline_settings.json.html" class="file-link">pipeline_settings.json</a><span class="file-size">(3.9 KB, 105 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 1</span></td>
+          <td class="component-name">SecurityDeltaExtractor.py</td>
+          <td class="desc-text">Extracts security-relevant git commit deltas with IaC file diffs</td>
+          <td>
+            <a href="docs/security_config.yaml.html" class="file-link">security_config.yaml</a><span class="file-size">(1.4 KB)</span>
+          </td>
+          <td>
+            <a href="docs/security_results.jsonl.html" class="file-link">security_results.jsonl</a><span class="file-size">(960.9 KB, 22 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 2</span></td>
+          <td class="component-name">CheckovScanner.py</td>
+          <td class="desc-text">Runs Checkov SAST scanner on before/after file versions (Micro View)</td>
+          <td>
+            <a href="docs/rule_severity.yaml.html" class="file-link">rule_severity.yaml</a><span class="file-size">(1.3 KB)</span><br>
+            <a href="docs/attack_classes.yaml.html" class="file-link">attack_classes.yaml</a><span class="file-size">(6.9 KB)</span>
+          </td>
+          <td>
+            <a href="docs/checkov_results.json.html" class="file-link">checkov_results.json</a><span class="file-size">(46.1 KB, 1,799 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 3A</span></td>
+          <td class="component-name">DeltaThreatModelDiffGenerator.py</td>
+          <td class="desc-text">Generates per-delta threat model diffs using PyTM (Macro View &mdash; Delta)</td>
+          <td>
+            <a href="docs/threat_model_config.yaml.html" class="file-link">threat_model_config.yaml</a><span class="file-size">(4.2 KB)</span><br>
+            <a href="docs/k8s_kind_map.yaml.html" class="file-link">k8s_kind_map.yaml</a><span class="file-size">(1.6 KB)</span><br>
+            <a href="docs/stride_categories.yaml.html" class="file-link">stride_categories.yaml</a><span class="file-size">(1.6 KB)</span>
+          </td>
+          <td>
+            <a href="docs/threat_model_results.json.html" class="file-link">threat_model_results.json</a><span class="file-size">(1.9 KB, 77 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 3B</span></td>
+          <td class="component-name">FullPyTMGenerator.py</td>
+          <td class="desc-text">Runs native PyTM threat model on full repository snapshot (Macro View &mdash; Full)</td>
+          <td>
+            <a href="docs/k8s_kind_map.yaml.html" class="file-link">k8s_kind_map.yaml</a><span class="file-size">(1.6 KB)</span><br>
+            <a href="docs/threat_model_config.yaml.html" class="file-link">threat_model_config.yaml</a><span class="file-size">(4.2 KB)</span>
+          </td>
+          <td>
+            <a href="docs/full_pytm_results.json.html" class="file-link">full_pytm_results.json</a><span class="file-size">(13.2 MB, 108,448 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 4</span></td>
+          <td class="component-name">VulnerabilityComparator.py</td>
+          <td class="desc-text">Correlates Micro + Macro findings, scores commits, classifies CSI</td>
+          <td>
+            <a href="docs/attack_classes.yaml.html" class="file-link">attack_classes.yaml</a><span class="file-size">(6.9 KB)</span><br>
+            <a href="docs/pipeline_config.yaml.html" class="file-link">pipeline_config.yaml</a><span class="file-size">(1.6 KB)</span>
+          </td>
+          <td>
+            <a href="docs/comparison_results.json.html" class="file-link">comparison_results.json</a><span class="file-size">(44.7 KB, 1,387 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 5</span></td>
+          <td class="component-name">LLMExplainer.py</td>
+          <td class="desc-text">Sends top findings to OpenRouter LLM for grounded security explanations</td>
+          <td>
+            <a href="docs/llm_explainer_config.yaml.html" class="file-link">llm_explainer_config.yaml</a><span class="file-size">(1.2 KB)</span><br>
+            <a href="docs/llm_prompt_template.txt.html" class="file-link">llm_prompt_template.txt</a><span class="file-size">(3.5 KB)</span>
+          </td>
+          <td>
+            <a href="docs/llm_explanations.json.html" class="file-link">llm_explanations.json</a><span class="file-size">(11.7 KB, 130 lines)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 6</span></td>
+          <td class="component-name">ExtractionReporter.py</td>
+          <td class="desc-text">Generates HTML report for git security delta extraction results</td>
+          <td>
+            <span class="desc-text">&mdash;</span>
+          </td>
+          <td>
+            <a href="git_security_deltas_report.html" class="file-link">git_security_deltas_report.html</a><span class="file-size">(56.0 KB)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 6</span></td>
+          <td class="component-name">ComparisonReporter.py</td>
+          <td class="desc-text">Generates HTML dashboard for comparison results with attack class breakdown</td>
+          <td>
+            <span class="desc-text">&mdash;</span>
+          </td>
+          <td>
+            <a href="comparison_report.html" class="file-link">comparison_report.html</a><span class="file-size">(40.0 KB)</span>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="stage-badge">Stage 6</span></td>
+          <td class="component-name">LLMExplainerReporter.py</td>
+          <td class="desc-text">Generates standalone HTML report for LLM explanations</td>
+          <td>
+            <span class="desc-text">&mdash;</span>
+          </td>
+          <td>
+            <a href="llm_explainer_report.html" class="file-link">llm_explainer_report.html</a><span class="file-size">(8.8 KB)</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════ CONFIG FILES ═══════════════════ -->
+<div class="section" id="config-section">
+  <h2 class="section-title">Configuration Files</h2>
+  <p class="section-desc">YAML and text configuration files that control pipeline behavior. Click any card to view file contents.</p>
+
+  <div class="card-grid">
+    <!-- security_config.yaml -->
+    <a href="docs/security_config.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">security_config.yaml</div>
+        <div class="card-desc">Keywords, IaC extensions, paths, and exclude patterns for delta extraction.</div>
+        <div class="card-meta"><span>88 lines</span><span>1.4 KB</span></div>
+      </div>
+    </a>
+    <!-- rule_severity.yaml -->
+    <a href="docs/rule_severity.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">rule_severity.yaml</div>
+        <div class="card-desc">Checkov rule ID to severity mapping (CRITICAL, HIGH, MEDIUM, LOW).</div>
+        <div class="card-meta"><span>38 lines</span><span>1.3 KB</span></div>
+      </div>
+    </a>
+    <!-- stride_categories.yaml -->
+    <a href="docs/stride_categories.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">stride_categories.yaml</div>
+        <div class="card-desc">STRIDE threat model categories (S/T/R/I/D/E) and attack class mappings.</div>
+        <div class="card-meta"><span>69 lines</span><span>1.6 KB</span></div>
+      </div>
+    </a>
+    <!-- attack_classes.yaml -->
+    <a href="docs/attack_classes.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">attack_classes.yaml</div>
+        <div class="card-desc">AC1-AC11 attack class taxonomy with STRIDE mappings, Checkov rules, CWE ranges.</div>
+        <div class="card-meta"><span>215 lines</span><span>6.9 KB</span></div>
+      </div>
+    </a>
+    <!-- k8s_kind_map.yaml -->
+    <a href="docs/k8s_kind_map.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">k8s_kind_map.yaml</div>
+        <div class="card-desc">Kubernetes resource kind to PyTM element kind mapping (Process, Dataflow, etc.).</div>
+        <div class="card-meta"><span>51 lines</span><span>1.6 KB</span></div>
+      </div>
+    </a>
+    <!-- threat_model_config.yaml -->
+    <a href="docs/threat_model_config.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">threat_model_config.yaml</div>
+        <div class="card-desc">Label flips, risky combos, hardening labels, secret detection patterns, RBAC verbs.</div>
+        <div class="card-meta"><span>130 lines</span><span>4.2 KB</span></div>
+      </div>
+    </a>
+    <!-- pipeline_config.yaml -->
+    <a href="docs/pipeline_config.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">pipeline_config.yaml</div>
+        <div class="card-desc">Central pipeline config: repo path, extraction limits, comparison weights, CSI threshold.</div>
+        <div class="card-meta"><span>58 lines</span><span>1.6 KB</span></div>
+      </div>
+    </a>
+    <!-- llm_explainer_config.yaml -->
+    <a href="docs/llm_explainer_config.yaml.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-yaml">YAML</span></div>
+        <div class="card-title">llm_explainer_config.yaml</div>
+        <div class="card-desc">LLM model routing, fallback chain, temperature, token limits, OpenRouter settings.</div>
+        <div class="card-meta"><span>46 lines</span><span>1.2 KB</span></div>
+      </div>
+    </a>
+    <!-- llm_prompt_template.txt -->
+    <a href="docs/llm_prompt_template.txt.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-txt">TXT</span></div>
+        <div class="card-title">llm_prompt_template.txt</div>
+        <div class="card-desc">System prompt for LLM explainer: input contract, correlation rules, output JSON schema.</div>
+        <div class="card-meta"><span>79 lines</span><span>3.5 KB</span></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════ RESULT FILES ═══════════════════ -->
+<div class="section" id="results-section">
+  <h2 class="section-title">Result Files</h2>
+  <p class="section-desc">JSON and JSONL output files produced by each pipeline stage. Large files are truncated to 200 lines in the viewer.</p>
+
+  <div class="card-grid">
+    <!-- security_results.jsonl -->
+    <a href="docs/security_results.jsonl.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSONL</span></div>
+        <div class="card-title">security_results.jsonl</div>
+        <div class="card-desc">Stage 1 output: extracted security-relevant git commit deltas.</div>
+        <div class="card-meta"><span>22 lines</span><span>960.9 KB</span></div>
+      </div>
+    </a>
+    <!-- checkov_results.json -->
+    <a href="docs/checkov_results.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">checkov_results.json</div>
+        <div class="card-desc">Stage 2 output: Checkov SAST scan findings for before/after file versions.</div>
+        <div class="card-meta"><span>1,799 lines</span><span>46.1 KB</span></div>
+      </div>
+    </a>
+    <!-- threat_model_results.json -->
+    <a href="docs/threat_model_results.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">threat_model_results.json</div>
+        <div class="card-desc">Stage 3A output: per-delta threat model diffs (Macro View - Delta).</div>
+        <div class="card-meta"><span>77 lines</span><span>1.9 KB</span></div>
+      </div>
+    </a>
+    <!-- full_pytm_results.json -->
+    <a href="docs/full_pytm_results.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">full_pytm_results.json</div>
+        <div class="card-desc">Stage 3B output: full repository PyTM threat model snapshot (Macro View - Full).</div>
+        <div class="card-meta"><span>108,448 lines</span><span>13.2 MB</span></div>
+      </div>
+    </a>
+    <!-- comparison_results.json -->
+    <a href="docs/comparison_results.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">comparison_results.json</div>
+        <div class="card-desc">Stage 4 output: correlated Micro+Macro findings with composite scores and CSI flags.</div>
+        <div class="card-meta"><span>1,387 lines</span><span>44.7 KB</span></div>
+      </div>
+    </a>
+    <!-- llm_explanations.json -->
+    <a href="docs/llm_explanations.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">llm_explanations.json</div>
+        <div class="card-desc">Stage 5 output: LLM-generated grounded security explanations for top findings.</div>
+        <div class="card-meta"><span>130 lines</span><span>11.7 KB</span></div>
+      </div>
+    </a>
+    <!-- pipeline_settings.json -->
+    <a href="docs/pipeline_settings.json.html" style="text-decoration:none;color:inherit;">
+      <div class="card">
+        <div><span class="card-badge badge-json">JSON</span></div>
+        <div class="card-title">pipeline_settings.json</div>
+        <div class="card-desc">Stage 7 output: archived pipeline settings and run metadata.</div>
+        <div class="card-meta"><span>105 lines</span><span>3.9 KB</span></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════ HTML REPORTS ═══════════════════ -->
+<div class="section" id="reports-section">
+  <h2 class="section-title">Generated HTML Reports</h2>
+  <p class="section-desc">Interactive HTML dashboard reports produced by Stage 6 reporters. Click to open each report.</p>
+
+  <div class="card-grid">
+    <!-- git_security_deltas_report.html -->
+    <a href="git_security_deltas_report.html" style="text-decoration:none;color:inherit;">
+      <div class="card report-card">
+        <div><span class="card-badge badge-html">HTML</span></div>
+        <div class="card-title">git_security_deltas_report.html</div>
+        <div class="card-desc">Extraction report: interactive view of all security-relevant git commit deltas with IaC diffs.</div>
+        <div class="card-meta"><span>56.0 KB</span><span>ExtractionReporter.py</span></div>
+        <div class="card-link" style="color:#ff7266;font-size:0.82rem;margin-top:4px;">Open Report &rarr;</div>
+      </div>
+    </a>
+    <!-- comparison_report.html -->
+    <a href="comparison_report.html" style="text-decoration:none;color:inherit;">
+      <div class="card report-card">
+        <div><span class="card-badge badge-html">HTML</span></div>
+        <div class="card-title">comparison_report.html</div>
+        <div class="card-desc">Comparison dashboard: attack class breakdown, severity distribution, composite score ranking.</div>
+        <div class="card-meta"><span>40.0 KB</span><span>ComparisonReporter.py</span></div>
+        <div class="card-link" style="color:#ff7266;font-size:0.82rem;margin-top:4px;">Open Report &rarr;</div>
+      </div>
+    </a>
+    <!-- llm_explainer_report.html -->
+    <a href="llm_explainer_report.html" style="text-decoration:none;color:inherit;">
+      <div class="card report-card">
+        <div><span class="card-badge badge-html">HTML</span></div>
+        <div class="card-title">llm_explainer_report.html</div>
+        <div class="card-desc">LLM explanation report: grounded security explanations with confidence scores and recommendations.</div>
+        <div class="card-meta"><span>8.8 KB</span><span>LLMExplainerReporter.py</span></div>
+        <div class="card-link" style="color:#ff7266;font-size:0.82rem;margin-top:4px;">Open Report &rarr;</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="main-footer">
+  <div>Security Extractor Pipeline Overview &mdash; Generated <span id="footer-timestamp"></span></div>
+  <div class="footer-brand">SecurityExtractor | Kubernetes IaC Security Analysis</div>
+</footer>
+
+<script>
+(function() {
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+  document.getElementById('header-timestamp').textContent = 'Generated: ' + now;
+  document.getElementById('footer-timestamp').textContent = now;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Deltas - Simple Table View</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: fixed;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #fff3cd;
+        }
+
+        .col-commit { width: 18%; }
+        .col-before { width: 24%; background: #fff5f5; color: #000000; }
+        .col-after { width: 24%; background: #f5fff5; color: #000000; }
+        .col-diff { width: 24%; }
+        .col-keywords { width: 10%; }
+
+        .commit-sha {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .commit-sha a {
+            color: #1565c0;
+            text-decoration: none;
+        }
+
+        .commit-sha a:hover {
+            text-decoration: underline;
+        }
+
+        .commit-msg {
+            font-size: 11px;
+            color: #333;
+            margin: 4px 0;
+            word-wrap: break-word;
+        }
+
+        .file-path {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 10px;
+            color: #666;
+            word-break: break-all;
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        pre {
+            margin: 0;
+            padding: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #f8f8f8;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .before-code {
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+
+        .after-code {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+
+        .diff-code {
+            background: #fafafa;
+        }
+
+        .line-removed {
+            background: #ffcdd2;
+            display: block;
+            margin: 0 -8px;
+            padding: 0 8px;
+        }
+
+        .line-added {
+            background: #c8e6c9;
+            display: block;
+            margin: 0 -8px;
+            padding: 0 8px;
+        }
+
+        .line-context {
+            color: #666;
+        }
+
+        .line-header {
+            color: #1565c0;
+            font-weight: bold;
+            background: #e3f2fd;
+            display: block;
+            margin: 0 -8px;
+            padding: 0 8px;
+        }
+
+        .keyword {
+            display: inline-block;
+            background: #fff3e0;
+            color: #e65100;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin: 2px;
+            font-weight: 500;
+        }
+
+        .row-num {
+            font-size: 10px;
+            color: #999;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .empty {
+            color: #999;
+            font-style: italic;
+            font-size: 11px;
+        }
+
+        footer {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .line-count {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .line-count.removed { color: #c62828; }
+        .line-count.added { color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>Security Deltas Report</h1>
+    <p class="subtitle">
+        22 entries analyzed |
+        Generated: 2026-02-14 21:47 |
+        Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/security_results.jsonl
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-commit">Commit / File</th>
+                <th class="col-before">BEFORE (Removed Lines)</th>
+                <th class="col-after">AFTER (Added Lines)</th>
+                <th class="col-diff">DIFF (Full Patch)</th>
+                <th class="col-keywords">Keywords</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#1</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b</a></span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.16.1</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -219,7 +219,7 @@</span>
+<span class="line-context">       serviceAccountName: csi-hostpathplugin-sa</span>
+<span class="line-context">       containers:</span>
+<span class="line-context">         - name: hostpath</span>
+<span class="line-removed">-          image: registry.k8s.io/sig-storage/hostpathplugin:v1.16.1</span>
+<span class="line-added">+          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</span>
+<span class="line-context">           args:</span>
+<span class="line-context">             - &quot;--drivername=hostpath.csi.k8s.io&quot;</span>
+<span class="line-context">             - &quot;--v=5&quot;</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#2</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b</a></span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -237,7 +237,7 @@</span>
+<span class="line-context">       serviceAccountName: csi-hostpathplugin-sa</span>
+<span class="line-context">       containers:</span>
+<span class="line-context">         - name: hostpath</span>
+<span class="line-removed">-          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</span>
+<span class="line-added">+          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</span>
+<span class="line-context">           args:</span>
+<span class="line-context">             - &quot;--drivername=hostpath.csi.k8s.io&quot;</span>
+<span class="line-context">             - &quot;--v=5&quot;</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#3</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b</a></span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -53,7 +53,7 @@</span>
+<span class="line-context">           - mountPath: /registration</span>
+<span class="line-context">             name: registration-dir</span>
+<span class="line-context">         - name: mock</span>
+<span class="line-removed">-          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</span>
+<span class="line-added">+          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</span>
+<span class="line-context">           args:</span>
+<span class="line-context">             - &quot;--drivername=mock.storage.k8s.io&quot;</span>
+<span class="line-context">             - &quot;--nodeid=$(KUBE_NODE_NAME)&quot;</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#4</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b</a></span>
+                    <div class="commit-msg">Update the csi-driver-host-path version to 1.17.1
+
+It fixes one annoying flake, https://github.com/kubernetes-csi/external-snapshotter/issues/1357</div>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -53,7 +53,7 @@</span>
+<span class="line-context">           - mountPath: /registration</span>
+<span class="line-context">             name: registration-dir</span>
+<span class="line-context">         - name: mock</span>
+<span class="line-removed">-          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.0</span>
+<span class="line-added">+          image: registry.k8s.io/sig-storage/hostpathplugin:v1.17.1</span>
+<span class="line-context">           args:</span>
+<span class="line-context">             - -v=5</span>
+<span class="line-context">             - -nodeid=$(KUBE_NODE_NAME)</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#5</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/5a2578ce0915a7973486c55dd5415026a418f918" target="_blank">5a2578c</a></span>
+                    <div class="commit-msg">kubelet: promote the CustomCPUCFSQuotaPeriod to GA
+
+Promote the CustomCPUCFSQuotaPeriod gate to GA, turning it enabled by
+default. Short history of this feature so far:
+
+As far as git and github histo</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: false
+    preRelease: GA
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -321,6 +321,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Alpha</span>
+<span class="line-context">     version: &quot;1.12&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: false</span>
+<span class="line-added">+    preRelease: GA</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: CPUManagerPolicyAlphaOptions</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#6</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/ccb70a6577d7c79391e1d1a25335bb87ffff33b8" target="_blank">ccb70a6</a></span>
+                    <div class="commit-msg">kubelet: deprecate DisableCPUQuotaWithExclusiveCPUs
+
+We missed the proper process initially, it should have
+been set to deprecated from the beginning, to convey
+this is a safety FG for a delicate, lon</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: false
+    preRelease: Deprecated
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -459,6 +459,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Beta</span>
+<span class="line-context">     version: &quot;1.33&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: false</span>
+<span class="line-added">+    preRelease: Deprecated</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: DisableNodeKubeProxyVersion</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#7</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">275adf8</a></span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.0 → v1.40.0
+- go.opentelemetry.io/otel/metric v1.39.0 → v1.40.0
+- go.opentelemet</div>
+                    <div class="file-path">hack/unwanted-dependencies.json</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 6 lines removed</div>
+                    <pre class="before-code">    &quot;pinnedModules&quot;: {
+      &quot;go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc&quot;: {
+        &quot;Version&quot;: &quot;v0.63.0&quot;,
+        &quot;Reason&quot;: &quot;v0.64.0 has nil pointer panic when nil TracerProvider is passed - https://github.com/kubernetes/kubernetes/issues/135865&quot;
+      }
+    },</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">    &quot;pinnedModules&quot;: {},</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -1,11 +1,6 @@</span>
+<span class="line-context"> {</span>
+<span class="line-context">   &quot;spec&quot;: {</span>
+<span class="line-removed">-    &quot;pinnedModules&quot;: {</span>
+<span class="line-removed">-      &quot;go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc&quot;: {</span>
+<span class="line-removed">-        &quot;Version&quot;: &quot;v0.63.0&quot;,</span>
+<span class="line-removed">-        &quot;Reason&quot;: &quot;v0.64.0 has nil pointer panic when nil TracerProvider is passed - https://github.com/kubernetes/kubernetes/issues/135865&quot;</span>
+<span class="line-removed">-      }</span>
+<span class="line-removed">-    },</span>
+<span class="line-added">+    &quot;pinnedModules&quot;: {},</span>
+<span class="line-context">     &quot;unwantedModules&quot;: {</span>
+<span class="line-context">       &quot;cloud.google.com/go&quot;: &quot;cloud dependency&quot;,</span>
+<span class="line-context">       &quot;cloud.google.com/go/bigquery&quot;: &quot;cloud dependency&quot;,</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#8</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">275adf8</a></span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.0 → v1.40.0
+- go.opentelemetry.io/otel/metric v1.39.0 → v1.40.0
+- go.opentelemet</div>
+                    <div class="file-path">vendor/go.opentelemetry.io/otel/.golangci.yml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">    - modernize
+    modernize:
+      disable:
+        - omitzero</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -16,6 +16,7 @@</span>
+<span class="line-context">     - govet</span>
+<span class="line-context">     - ineffassign</span>
+<span class="line-context">     - misspell</span>
+<span class="line-added">+    - modernize</span>
+<span class="line-context">     - perfsprint</span>
+<span class="line-context">     - revive</span>
+<span class="line-context">     - staticcheck</span>
+<span class="line-header">@@ -111,6 +112,9 @@</span>
+<span class="line-context">       locale: US</span>
+<span class="line-context">       ignore-rules:</span>
+<span class="line-context">         - cancelled</span>
+<span class="line-added">+    modernize:</span>
+<span class="line-added">+      disable:</span>
+<span class="line-added">+        - omitzero</span>
+<span class="line-context">     perfsprint:</span>
+<span class="line-context">       int-conversion: true</span>
+<span class="line-context">       err-error: true</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#9</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/275adf8b047da379724c91a9163f8138159ea8e8" target="_blank">275adf8</a></span>
+                    <div class="commit-msg">Update OpenTelemetry dependencies to latest versions
+
+Bump OpenTelemetry dependencies:
+- go.opentelemetry.io/otel v1.39.0 → v1.40.0
+- go.opentelemetry.io/otel/metric v1.39.0 → v1.40.0
+- go.opentelemet</div>
+                    <div class="file-path">vendor/go.opentelemetry.io/otel/versions.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 3 lines removed</div>
+                    <pre class="before-code">    version: v1.39.0
+    version: v0.61.0
+    version: v0.15.0</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 6 lines added</div>
+                    <pre class="after-code">    version: v1.40.0
+    version: v0.62.0
+    version: v0.16.0
+  go.opentelemetry.io/otel/exporters/stdout/stdoutmetric:
+    version-refs:
+      - ./internal/version.go</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -3,7 +3,7 @@</span>
+<span class="line-context"> </span>
+<span class="line-context"> module-sets:</span>
+<span class="line-context">   stable-v1:</span>
+<span class="line-removed">-    version: v1.39.0</span>
+<span class="line-added">+    version: v1.40.0</span>
+<span class="line-context">     modules:</span>
+<span class="line-context">       - go.opentelemetry.io/otel</span>
+<span class="line-context">       - go.opentelemetry.io/otel/bridge/opencensus</span>
+<span class="line-header">@@ -22,11 +22,11 @@</span>
+<span class="line-context">       - go.opentelemetry.io/otel/sdk/metric</span>
+<span class="line-context">       - go.opentelemetry.io/otel/trace</span>
+<span class="line-context">   experimental-metrics:</span>
+<span class="line-removed">-    version: v0.61.0</span>
+<span class="line-added">+    version: v0.62.0</span>
+<span class="line-context">     modules:</span>
+<span class="line-context">       - go.opentelemetry.io/otel/exporters/prometheus</span>
+<span class="line-context">   experimental-logs:</span>
+<span class="line-removed">-    version: v0.15.0</span>
+<span class="line-added">+    version: v0.16.0</span>
+<span class="line-context">     modules:</span>
+<span class="line-context">       - go.opentelemetry.io/otel/log</span>
+<span class="line-context">       - go.opentelemetry.io/otel/log/logtest</span>
+<span class="line-header">@@ -46,6 +46,9 @@</span>
+<span class="line-context">   go.opentelemetry.io/otel/exporters/stdout/stdouttrace:</span>
+<span class="line-context">     version-refs:</span>
+<span class="line-context">       - ./internal/version.go</span>
+<span class="line-added">+  go.opentelemetry.io/otel/exporters/stdout/stdoutmetric:</span>
+<span class="line-added">+    version-refs:</span>
+<span class="line-added">+      - ./internal/version.go</span>
+<span class="line-context">   go.opentelemetry.io/otel/exporters/prometheus:</span>
+<span class="line-context">     version-refs:</span>
+<span class="line-context">       - ./internal/version.go</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#10</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/5dd7be6b4fcb0446d309ef5e1c92a68bf275c12b" target="_blank">5dd7be6</a></span>
+                    <div class="commit-msg">Merge pull request #136118 from HarshalNeelkamal/ga-external-jwt
+
+Make ExternalServiceAccountTokenSigner GA</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: true
+    preRelease: GA
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -603,6 +603,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Beta</span>
+<span class="line-context">     version: &quot;1.34&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: true</span>
+<span class="line-added">+    preRelease: GA</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: GangScheduling</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">token</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#11</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/cb58c79c767ee1348cd59e075fb6248a10f8eef2" target="_blank">cb58c79</a></span>
+                    <div class="commit-msg">Merge pull request #136750 from BenTheElder/master-go-1.25.7
+
+update core binaries to go 1.25.7 for CVE fixes</div>
+                    <div class="file-path">build/dependencies.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">    version: 1.25.6</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">    version: 1.25.7</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -150,7 +150,7 @@</span>
+<span class="line-context">   # Golang</span>
+<span class="line-context">   # TODO: this should really be eliminated and controlled by .go-version</span>
+<span class="line-context">   - name: &quot;golang: upstream version&quot;</span>
+<span class="line-removed">-    version: 1.25.6</span>
+<span class="line-added">+    version: 1.25.7</span>
+<span class="line-context">     refPaths:</span>
+<span class="line-context">     - path: .go-version</span>
+<span class="line-context">     - path: staging/publishing/rules.yaml</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#12</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/cb58c79c767ee1348cd59e075fb6248a10f8eef2" target="_blank">cb58c79</a></span>
+                    <div class="commit-msg">Merge pull request #136750 from BenTheElder/master-go-1.25.7
+
+update core binaries to go 1.25.7 for CVE fixes</div>
+                    <div class="file-path">staging/publishing/rules.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 1 lines removed</div>
+                    <pre class="before-code">default-go-version: 1.25.6</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 1 lines added</div>
+                    <pre class="after-code">default-go-version: 1.25.7</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -2489,4 +2489,4 @@</span>
+<span class="line-context">       - staging/src/k8s.io/externaljwt</span>
+<span class="line-context"> recursive-delete-patterns:</span>
+<span class="line-context"> - &#x27;*/.gitattributes&#x27;</span>
+<span class="line-removed">-default-go-version: 1.25.6</span>
+<span class="line-added">+default-go-version: 1.25.7</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#13</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/aa4159c2d2dde5d2e9929974884f12608d7d2d3d" target="_blank">aa4159c</a></span>
+                    <div class="commit-msg">Bump prometheus/common to v0.67.5 and prometheus/procfs to v0.19.2
+
+prometheus/common v0.66.1 -&gt; v0.67.5:
+- Breaking: TextParser must now use NewTextParser() constructor
+- Float/gauge histograms suppo</div>
+                    <div class="file-path">vendor/github.com/prometheus/procfs/.golangci.yml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 11 lines removed</div>
+                    <pre class="before-code">    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 17 lines added</div>
+                    <pre class="after-code">    - errorlint
+    - gocritic
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - commentFormatting
+        - commentedOutCode
+        - deferInLoop
+        - filepathJoin
+        - hugeParam
+        - importShadow
+        - paramTypeCombine
+        - rangeValCopy
+        - tooManyResultsChecker
+        - unnamedResult
+        - whyNoLint
+    warn-unused: true</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -1,7 +1,9 @@</span>
+<span class="line-context"> version: &quot;2&quot;</span>
+<span class="line-context"> linters:</span>
+<span class="line-context">   enable:</span>
+<span class="line-added">+    - errorlint</span>
+<span class="line-context">     - forbidigo</span>
+<span class="line-added">+    - gocritic</span>
+<span class="line-context">     - godot</span>
+<span class="line-context">     - misspell</span>
+<span class="line-context">     - revive</span>
+<span class="line-header">@@ -11,6 +13,20 @@</span>
+<span class="line-context">       forbid:</span>
+<span class="line-context">         - pattern: ^fmt\.Print.*$</span>
+<span class="line-context">           msg: Do not commit print statements.</span>
+<span class="line-added">+    gocritic:</span>
+<span class="line-added">+      enable-all: true</span>
+<span class="line-added">+      disabled-checks:</span>
+<span class="line-added">+        - commentFormatting</span>
+<span class="line-added">+        - commentedOutCode</span>
+<span class="line-added">+        - deferInLoop</span>
+<span class="line-added">+        - filepathJoin</span>
+<span class="line-added">+        - hugeParam</span>
+<span class="line-added">+        - importShadow</span>
+<span class="line-added">+        - paramTypeCombine</span>
+<span class="line-added">+        - rangeValCopy</span>
+<span class="line-added">+        - tooManyResultsChecker</span>
+<span class="line-added">+        - unnamedResult</span>
+<span class="line-added">+        - whyNoLint</span>
+<span class="line-context">     godot:</span>
+<span class="line-context">       exclude:</span>
+<span class="line-context">         # Ignore &quot;See: URL&quot;.</span>
+<span class="line-header">@@ -19,16 +35,12 @@</span>
+<span class="line-context">     misspell:</span>
+<span class="line-context">       locale: US</span>
+<span class="line-context">   exclusions:</span>
+<span class="line-removed">-    generated: lax</span>
+<span class="line-context">     presets:</span>
+<span class="line-context">       - comments</span>
+<span class="line-context">       - common-false-positives</span>
+<span class="line-context">       - legacy</span>
+<span class="line-context">       - std-error-handling</span>
+<span class="line-removed">-    paths:</span>
+<span class="line-removed">-      - third_party$</span>
+<span class="line-removed">-      - builtin$</span>
+<span class="line-removed">-      - examples$</span>
+<span class="line-added">+    warn-unused: true</span>
+<span class="line-context"> formatters:</span>
+<span class="line-context">   enable:</span>
+<span class="line-context">     - gofmt</span>
+<span class="line-header">@@ -37,9 +49,3 @@</span>
+<span class="line-context">     goimports:</span>
+<span class="line-context">       local-prefixes:</span>
+<span class="line-context">         - github.com/prometheus/procfs</span>
+<span class="line-removed">-  exclusions:</span>
+<span class="line-removed">-    generated: lax</span>
+<span class="line-removed">-    paths:</span>
+<span class="line-removed">-      - third_party$</span>
+<span class="line-removed">-      - builtin$</span>
+<span class="line-removed">-      - examples$</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span><span class="keyword">exposed</span><span class="keyword">tls</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#14</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/44ff6085cd32c370ed84a53ba756e4ffef5c3603" target="_blank">44ff608</a></span>
+                    <div class="commit-msg">Merge pull request #136726 from dims/fix-containerd-ubuntu-dual-install
+
+Fix install-containerd-ubuntu to skip apt when both versions specified</div>
+                    <div class="file-path">cluster/gce/gci/master.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 2 lines added</div>
+                    <pre class="after-code"> - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true
+ - systemctl stop unattended-upgrades.service || true</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -129,6 +129,8 @@</span>
+<span class="line-context">       WantedBy=multi-user.target</span>
+<span class="line-context"> </span>
+<span class="line-context"> runcmd:</span>
+<span class="line-added">+ - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true</span>
+<span class="line-added">+ - systemctl stop unattended-upgrades.service || true</span>
+<span class="line-context">  - systemctl daemon-reload</span>
+<span class="line-context">  - systemctl enable kube-bootstrap-logs-forwarder.service</span>
+<span class="line-context">  - systemctl enable kube-master-installation.service</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#15</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/44ff6085cd32c370ed84a53ba756e4ffef5c3603" target="_blank">44ff608</a></span>
+                    <div class="commit-msg">Merge pull request #136726 from dims/fix-containerd-ubuntu-dual-install
+
+Fix install-containerd-ubuntu to skip apt when both versions specified</div>
+                    <div class="file-path">cluster/gce/gci/node.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 2 lines added</div>
+                    <pre class="after-code"> - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true
+ - systemctl stop unattended-upgrades.service || true</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -87,6 +87,8 @@</span>
+<span class="line-context">       options sunrpc max_resvport=986</span>
+<span class="line-context"> </span>
+<span class="line-context"> runcmd:</span>
+<span class="line-added">+ - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true</span>
+<span class="line-added">+ - systemctl stop unattended-upgrades.service || true</span>
+<span class="line-context">  - systemctl daemon-reload</span>
+<span class="line-context">  - systemctl enable kube-node-installation.service</span>
+<span class="line-context">  - systemctl enable kube-node-configuration.service</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#16</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/754c108b9654e9c28672b67333d1d04cda883ea0" target="_blank">754c108</a></span>
+                    <div class="commit-msg">Make ExternalServiceAccountTokenSigner GA</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: true
+    preRelease: GA
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -599,6 +599,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Beta</span>
+<span class="line-context">     version: &quot;1.34&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: true</span>
+<span class="line-added">+    preRelease: GA</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: GangScheduling</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">token</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#17</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/67043dca9fb6e5a50c0a0bc27433057f73ae2ad1" target="_blank">67043dc</a></span>
+                    <div class="commit-msg">disable unnecessary Ubuntu services during node bootstrap
+
+Mask and stop services that compete with apt operations or are not
+needed for Kubernetes nodes:
+
+- apt-news.service/timer: fetches APT news, </div>
+                    <div class="file-path">cluster/gce/gci/master.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 2 lines added</div>
+                    <pre class="after-code"> - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true
+ - systemctl stop unattended-upgrades.service || true</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -129,6 +129,8 @@</span>
+<span class="line-context">       WantedBy=multi-user.target</span>
+<span class="line-context"> </span>
+<span class="line-context"> runcmd:</span>
+<span class="line-added">+ - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true</span>
+<span class="line-added">+ - systemctl stop unattended-upgrades.service || true</span>
+<span class="line-context">  - systemctl daemon-reload</span>
+<span class="line-context">  - systemctl enable kube-bootstrap-logs-forwarder.service</span>
+<span class="line-context">  - systemctl enable kube-master-installation.service</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">security</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#18</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/67043dca9fb6e5a50c0a0bc27433057f73ae2ad1" target="_blank">67043dc</a></span>
+                    <div class="commit-msg">disable unnecessary Ubuntu services during node bootstrap
+
+Mask and stop services that compete with apt operations or are not
+needed for Kubernetes nodes:
+
+- apt-news.service/timer: fetches APT news, </div>
+                    <div class="file-path">cluster/gce/gci/node.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 2 lines added</div>
+                    <pre class="after-code"> - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true
+ - systemctl stop unattended-upgrades.service || true</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -87,6 +87,8 @@</span>
+<span class="line-context">       options sunrpc max_resvport=986</span>
+<span class="line-context"> </span>
+<span class="line-context"> runcmd:</span>
+<span class="line-added">+ - systemctl mask apt-news.service apt-news.timer esm-cache.service snapd.service snapd.socket lxd-installer.socket ubuntu-advantage.service unattended-upgrades.service motd-news.timer update-notifier-motd.timer update-notifier-download.timer || true</span>
+<span class="line-added">+ - systemctl stop unattended-upgrades.service || true</span>
+<span class="line-context">  - systemctl daemon-reload</span>
+<span class="line-context">  - systemctl enable kube-node-installation.service</span>
+<span class="line-context">  - systemctl enable kube-node-configuration.service</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">security</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#19</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/5245587ff79f9e3775606e497a36924bedcd11ee" target="_blank">5245587</a></span>
+                    <div class="commit-msg">Merge pull request #136596 from aramase/aramase/f/kep_5538_stable_impl
+
+Mark CSIServiceAccountTokenSecrets feature gate as GA</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: true
+    preRelease: GA
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -379,6 +379,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Beta</span>
+<span class="line-context">     version: &quot;1.35&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: true</span>
+<span class="line-added">+    preRelease: GA</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: CSIVolumeHealth</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">secret</span><span class="keyword">token</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#20</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/d6d215821a8f1572cae80de0198650766e6860e7" target="_blank">d6d2158</a></span>
+                    <div class="commit-msg">Mark CSIServiceAccountTokenSecrets feature gate as GA
+
+Signed-off-by: Anish Ramasekar &lt;anish.ramasekar@gmail.com&gt;</div>
+                    <div class="file-path">test/compatibility_lifecycle/reference/versioned_feature_list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 4 lines added</div>
+                    <pre class="after-code">  - default: true
+    lockToDefault: true
+    preRelease: GA
+    version: &quot;1.36&quot;</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -379,6 +379,10 @@</span>
+<span class="line-context">     lockToDefault: false</span>
+<span class="line-context">     preRelease: Beta</span>
+<span class="line-context">     version: &quot;1.35&quot;</span>
+<span class="line-added">+  - default: true</span>
+<span class="line-added">+    lockToDefault: true</span>
+<span class="line-added">+    preRelease: GA</span>
+<span class="line-added">+    version: &quot;1.36&quot;</span>
+<span class="line-context"> - name: CSIVolumeHealth</span>
+<span class="line-context">   versionedSpecs:</span>
+<span class="line-context">   - default: false</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">secret</span><span class="keyword">token</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#21</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/f3de090c6061991aaa63a2b08c3e14ce0ecc7402" target="_blank">f3de090</a></span>
+                    <div class="commit-msg">fix: introduce metric as stage alpha</div>
+                    <div class="file-path">test/instrumentation/testdata/stable-metrics-list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 6 lines removed</div>
+                    <pre class="before-code">- name: route_sync_total
+  subsystem: route_controller
+  help: A metric counting the amount of times routes have been synced with the cloud
+    provider.
+  type: Counter
+  stabilityLevel: BETA</pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 0 lines added</div>
+                    <pre class="after-code"><span class="empty">(no lines added)</span></pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -256,12 +256,6 @@</span>
+<span class="line-context">   labels:</span>
+<span class="line-context">   - deprecated_version</span>
+<span class="line-context">   - stability_level</span>
+<span class="line-removed">-- name: route_sync_total</span>
+<span class="line-removed">-  subsystem: route_controller</span>
+<span class="line-removed">-  help: A metric counting the amount of times routes have been synced with the cloud</span>
+<span class="line-removed">-    provider.</span>
+<span class="line-removed">-  type: Counter</span>
+<span class="line-removed">-  stabilityLevel: BETA</span>
+<span class="line-context"> - name: pod_scheduling_sli_duration_seconds</span>
+<span class="line-context">   subsystem: scheduler</span>
+<span class="line-context">   help: E2e latency for a pod being scheduled, from the time the pod enters the scheduling</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-commit">
+                    <span class="row-num">#22</span>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/a53840212694c71f2f37e7fa3fadf6603940a658" target="_blank">a538402</a></span>
+                    <div class="commit-msg">fix: update golden list of metrics</div>
+                    <div class="file-path">test/instrumentation/testdata/stable-metrics-list.yaml</div>
+                </td>
+                <td class="col-before">
+                    <div class="line-count removed">▼ 0 lines removed</div>
+                    <pre class="before-code"><span class="empty">(no lines removed)</span></pre>
+                </td>
+                <td class="col-after">
+                    <div class="line-count added">▲ 6 lines added</div>
+                    <pre class="after-code">- name: route_sync_total
+  subsystem: route_controller
+  help: A metric counting the amount of times routes have been synced with the cloud
+    provider.
+  type: Counter
+  stabilityLevel: BETA</pre>
+                </td>
+                <td class="col-diff">
+                    <pre class="diff-code"><span class="line-header">@@ -256,6 +256,12 @@</span>
+<span class="line-context">   labels:</span>
+<span class="line-context">   - deprecated_version</span>
+<span class="line-context">   - stability_level</span>
+<span class="line-added">+- name: route_sync_total</span>
+<span class="line-added">+  subsystem: route_controller</span>
+<span class="line-added">+  help: A metric counting the amount of times routes have been synced with the cloud</span>
+<span class="line-added">+    provider.</span>
+<span class="line-added">+  type: Counter</span>
+<span class="line-added">+  stabilityLevel: BETA</span>
+<span class="line-context"> - name: pod_scheduling_sli_duration_seconds</span>
+<span class="line-context">   subsystem: scheduler</span>
+<span class="line-context">   help: E2e latency for a pod being scheduled, from the time the pod enters the scheduling</span></pre>
+                </td>
+                <td class="col-keywords">
+                    <span class="keyword">fix</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer>
+        <strong>How to use this report:</strong><br>
+        • <strong>BEFORE</strong> column shows lines that were removed (potential vulnerable code)<br>
+        • <strong>AFTER</strong> column shows lines that were added (potential fixes)<br>
+        • <strong>DIFF</strong> column shows the full patch with context<br>
+        • Click commit SHA to view the full commit on GitHub<br>
+        • Keywords are read from the extractor output
+    </footer>
+</body>
+</html>

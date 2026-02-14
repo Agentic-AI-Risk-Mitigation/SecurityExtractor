@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>threat_model_results.json - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #66bb6a22;
+    color: #66bb6a;
+    border: 1px solid #66bb6a44;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>threat_model_results.json<span class="badge">RESULT</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 78</span>
+    <span>Type: JSON</span>
+    <span>Category: Result File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code>[
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 12,
+    &quot;after_element_count&quot;: 12,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 13,
+    &quot;after_element_count&quot;: 13,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 1,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  },
+  {
+    &quot;commit_sha&quot;: &quot;7d68b9b996331564eab75f4ab7ba0e30db6a0a96&quot;,
+    &quot;file_path&quot;: &quot;test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml&quot;,
+    &quot;findings&quot;: [],
+    &quot;finding_count&quot;: 0,
+    &quot;risk_delta&quot;: 0,
+    &quot;before_element_count&quot;: 1,
+    &quot;after_element_count&quot;: 1,
+    &quot;before_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ],
+    &quot;after_labels&quot;: [
+      &quot;AdminPath&quot;,
+      &quot;Authenticated&quot;,
+      &quot;Unrestricted&quot;
+    ]
+  }
+]</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

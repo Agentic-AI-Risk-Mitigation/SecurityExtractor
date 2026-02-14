@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>attack_classes.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>attack_classes.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 214</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># attack_classes.yaml -- AC1-AC11 taxonomy.
+#
+# Converted from: data/IaC_attack_classes.xlsx
+# Python source:  monitor/models/attack_classes.py
+#
+# This file is the single source of truth for attack class definitions.
+# Related configuration split into separate files:
+#   - stride_categories.yaml  -- STRIDE threat model categories
+#   - rule_severity.yaml      -- Checkov rule ID -&gt; severity mapping
+
+# Classes directly detectable in K8S YAML (prototype scope)
+prototype_scope:
+  - AC1
+  - AC2
+  - AC3
+  - AC4
+  - AC5
+  - AC6
+  - AC7
+  - AC9
+
+attack_classes:
+
+  - id: AC1
+    name: &quot;Secret Exposure&quot;
+    description: &gt;-
+      Credentials, tokens, or keys exposed in IaC manifests
+      (ConfigMaps, env vars, hardcoded strings).
+    stride:
+      - &quot;Information Disclosure&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_35&quot;
+    example_signals:
+      - &quot;Hardcoded password in ConfigMap data field&quot;
+      - &quot;Secret value in plain env var instead of secretKeyRef&quot;
+      - &quot;Base64 token embedded directly in manifest&quot;
+    cwe_range: &quot;CWE-200, CWE-312, CWE-798&quot;
+
+  - id: AC2
+    name: &quot;Overly Permissive IAM/RBAC&quot;
+    description: &gt;-
+      Broad or wildcard RBAC bindings granting excessive cluster privileges.
+    stride:
+      - &quot;Elevation of Privilege&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_41&quot;
+      - &quot;CKV_K8S_49&quot;
+    example_signals:
+      - &quot;ClusterRoleBinding to cluster-admin&quot;
+      - &quot;Wildcard verbs [&#x27;*&#x27;] in Role rules&quot;
+      - &quot;Wildcard resources [&#x27;*&#x27;] in ClusterRole&quot;
+    cwe_range: &quot;CWE-250, CWE-269&quot;
+
+  - id: AC3
+    name: &quot;Internet Exposure&quot;
+    description: &gt;-
+      Services or workloads reachable from the public internet
+      without adequate controls.
+    stride:
+      - &quot;Spoofing&quot;
+      - &quot;Information Disclosure&quot;
+    k8s_relevant: true
+    checkov_rules: []           # Macro View only -- no built-in Checkov rule
+    example_signals:
+      - &quot;Service type changed from ClusterIP to LoadBalancer&quot;
+      - &quot;Ingress without authentication annotation&quot;
+      - &quot;NodePort exposing kube-system workload&quot;
+    cwe_range: &quot;CWE-284, CWE-668&quot;
+
+  - id: AC4
+    name: &quot;Network Segmentation &amp; Egress Control Gaps&quot;
+    description: &gt;-
+      Missing or overly permissive NetworkPolicies allowing lateral
+      movement or uncontrolled egress.
+    stride:
+      - &quot;Tampering&quot;
+      - &quot;Elevation of Privilege&quot;
+    k8s_relevant: true
+    checkov_rules: []           # Macro View only
+    example_signals:
+      - &quot;NetworkPolicy deleted, removing ingress/egress restrictions&quot;
+      - &quot;Allow-all egress policy ({} podSelector)&quot;
+      - &quot;No NetworkPolicy governs pods in namespace&quot;
+    cwe_range: &quot;CWE-284, CWE-441&quot;
+
+  - id: AC5
+    name: &quot;Weak Encryption &amp; TLS&quot;
+    description: &gt;-
+      Missing or disabled TLS on public-facing endpoints;
+      plaintext data flows.
+    stride:
+      - &quot;Tampering&quot;
+      - &quot;Information Disclosure&quot;
+    k8s_relevant: true
+    checkov_rules: []           # custom rules needed
+    example_signals:
+      - &quot;Ingress TLS block removed&quot;
+      - &quot;ssl-redirect annotation set to false&quot;
+      - &quot;HTTP backend without TLS termination&quot;
+    cwe_range: &quot;CWE-311, CWE-319&quot;
+
+  - id: AC6
+    name: &quot;Workload Privilege Escalation&quot;
+    description: &gt;-
+      Container security context allows privilege escalation, root,
+      host access, or dangerous capabilities.
+    stride:
+      - &quot;Elevation of Privilege&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_1&quot;            # privileged container
+      - &quot;CKV_K8S_6&quot;            # root user
+      - &quot;CKV_K8S_4&quot;            # hostNetwork
+      - &quot;CKV_K8S_17&quot;           # hostPID
+      - &quot;CKV_K8S_16&quot;           # hostIPC
+      - &quot;CKV_K8S_20&quot;           # allowPrivilegeEscalation
+      - &quot;CKV_K8S_25&quot;           # capabilities ADD
+    example_signals:
+      - &quot;privileged: true in securityContext&quot;
+      - &quot;runAsUser: 0 (root)&quot;
+      - &quot;hostNetwork: true + hostPID: true&quot;
+      - &quot;allowPrivilegeEscalation: true&quot;
+      - &quot;capabilities: add [SYS_ADMIN]&quot;
+    cwe_range: &quot;CWE-250, CWE-269, CWE-272&quot;
+
+  - id: AC7
+    name: &quot;Supply Chain &amp; Artifact Integrity&quot;
+    description: &gt;-
+      Container images with mutable tags or missing digest pinning.
+    stride:
+      - &quot;Tampering&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_14&quot;           # image tag is :latest
+      - &quot;CKV_K8S_15&quot;           # image digest pinning
+    example_signals:
+      - &quot;Image tag changed from @sha256:... to :latest&quot;
+      - &quot;Unpinned image tag without digest&quot;
+      - &quot;Image from untrusted registry&quot;
+    cwe_range: &quot;CWE-494, CWE-829&quot;
+
+  - id: AC8
+    name: &quot;IaC Module / Dependency Integrity&quot;
+    description: &gt;-
+      Untrusted or unversioned Helm chart references or Kustomize bases.
+    stride:
+      - &quot;Tampering&quot;
+    k8s_relevant: false         # Helm only -- stretch goal
+    checkov_rules: []
+    example_signals:
+      - &quot;Helm dependency without version pin&quot;
+      - &quot;Kustomize remote base without commit ref&quot;
+    cwe_range: &quot;CWE-494, CWE-829&quot;
+
+  - id: AC9
+    name: &quot;Insecure Defaults &amp; Hardening Gaps&quot;
+    description: &gt;-
+      Workloads deployed without security context, resource limits,
+      probes, or non-default service account.
+    stride:
+      - &quot;Elevation of Privilege&quot;
+      - &quot;Information Disclosure&quot;
+    k8s_relevant: true
+    checkov_rules:
+      - &quot;CKV_K8S_8&quot;            # liveness probe
+      - &quot;CKV_K8S_9&quot;            # readiness probe
+      - &quot;CKV_K8S_12&quot;           # capabilities not dropped
+      - &quot;CKV_K8S_22&quot;           # readOnlyRootFilesystem
+      - &quot;CKV_K8S_28&quot;           # resource limits
+      - &quot;CKV_K8S_37&quot;           # default service account
+      - &quot;CKV_K8S_21&quot;           # default namespace
+      - &quot;CKV_K8S_23&quot;           # seccomp profile
+    example_signals:
+      - &quot;New Deployment with no securityContext block&quot;
+      - &quot;No resource limits or requests&quot;
+      - &quot;Using default ServiceAccount&quot;
+      - &quot;No readOnlyRootFilesystem&quot;
+    cwe_range: &quot;CWE-276, CWE-1188&quot;
+
+  - id: AC10
+    name: &quot;Auditability &amp; Monitoring Gaps&quot;
+    description: &gt;-
+      Missing or weakened audit logging, monitoring config,
+      or observability resources.
+    stride:
+      - &quot;Repudiation&quot;
+    k8s_relevant: true
+    checkov_rules: []           # custom rules needed
+    example_signals:
+      - &quot;Audit policy weakened or removed&quot;
+      - &quot;Logging sidecar removed from deployment&quot;
+      - &quot;Prometheus scrape annotation removed&quot;
+    cwe_range: &quot;CWE-778, CWE-223&quot;
+
+  - id: AC11
+    name: &quot;Availability &amp; Resilience Misconfiguration&quot;
+    description: &gt;-
+      Missing probes, resource limits, PodDisruptionBudgets,
+</code></pre>
+    <div class="truncation-notice">(Truncated at 200 lines &mdash; full file has 214 lines)</div>
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

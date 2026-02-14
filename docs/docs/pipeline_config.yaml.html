@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pipeline_config.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>pipeline_config.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 57</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># pipeline_config.yaml -- Central configuration for the lightweight pipeline.
+#
+# All paths are relative to the project root (where PipelineRunner.py lives).
+# No value in this file should be hardcoded in Python source code.
+
+repository:
+  path: &quot;data/kubernetes&quot;
+  url: &quot;https://github.com/kubernetes/kubernetes&quot;
+  branch: &quot;master&quot;
+
+extraction:
+  config_path: &quot;config/security_config.yaml&quot;
+  limit: 500
+  iac_only: true
+  iac_paths_only: false
+  verbose: true
+
+checkov:
+  timeout: 60
+  framework: &quot;kubernetes&quot;
+  skip_non_yaml: true       # skip deltas whose content lacks apiVersion/kind
+
+threat_model:
+  skip_non_k8s: true        # skip deltas whose content lacks apiVersion/kind
+  k8s_kind_map_path: &quot;config/k8s_kind_map.yaml&quot;
+  threat_model_config_path: &quot;config/threat_model_config.yaml&quot;
+
+comparison:
+  weights:
+    keyword: 0.10
+    checkov: 0.45
+    threat_model: 0.45
+  severity_weights:
+    CRITICAL: 10
+    HIGH: 5
+    MEDIUM: 2
+    LOW: 1
+    INFO: 0
+  csi_threshold: 0.30       # Commit of Security Interest threshold
+
+attack_classes:
+  config_path: &quot;config/attack_classes.yaml&quot;
+  rule_severity_path: &quot;config/rule_severity.yaml&quot;
+  stride_categories_path: &quot;config/stride_categories.yaml&quot;
+
+output:
+  directory: &quot;output&quot;
+  extraction_jsonl: &quot;security_results.jsonl&quot;
+  checkov_json: &quot;checkov_results.json&quot;
+  threat_model_json: &quot;threat_model_results.json&quot;
+  comparison_json: &quot;comparison_results.json&quot;
+  extraction_report_html: &quot;git_security_deltas_report.html&quot;
+  comparison_report_html: &quot;comparison_report.html&quot;
+
+logging:
+  level: &quot;INFO&quot;
+  format: &quot;%(asctime)s [%(name)s] %(levelname)s %(message)s&quot;
+</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

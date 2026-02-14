@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Security Explanation Report</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f7f9fc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            font-size: 13px;
+            line-height: 1.45;
+            color: #1f2937;
+        }
+        h1 {
+            margin: 0 0 8px 0;
+            color: #0b3d91;
+            font-size: 24px;
+        }
+        h2 {
+            margin: 24px 0 10px 0;
+            font-size: 16px;
+            color: #2c3e50;
+            border-bottom: 2px solid #0b3d91;
+            padding-bottom: 4px;
+        }
+        .subtitle {
+            color: #5b6472;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+        .cards {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #dbe2ea;
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 150px;
+            flex: 1;
+        }
+        .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0b3d91;
+        }
+        .label {
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .section-note {
+            background: #e8eefb;
+            border-radius: 8px;
+            padding: 12px;
+            color: #1f2937;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 1px solid #dbe2ea;
+        }
+        th {
+            background: #2c3e50;
+            color: #ffffff;
+            text-align: left;
+            padding: 8px;
+            font-size: 11px;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+            font-size: 12px;
+        }
+        tr:nth-child(even) { background: #f9fbff; }
+        .commit-sha {
+            display: inline-block;
+            background: #e3f2fd;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 11px;
+        }
+        .commit-sha a {
+            color: #0b3d91;
+            text-decoration: none;
+        }
+        .commit-sha a:hover { text-decoration: underline; }
+        .file-path {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #5b6472;
+            word-break: break-all;
+        }
+        .badge {
+            display: inline-block;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .sev-critical { background: #b71c1c; color: #fff; }
+        .sev-high { background: #d32f2f; color: #fff; }
+        .sev-medium { background: #f57c00; color: #fff; }
+        .sev-low { background: #388e3c; color: #fff; }
+        .sev-info { background: #455a64; color: #fff; }
+        .sev-unknown { background: #757575; color: #fff; }
+        .empty {
+            color: #8a94a6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>LLM Security Explanation Report</h1>
+    <p class="subtitle">
+        Generated: 2026-02-14 21:47 |
+        Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
+    </p>
+
+    <div class="cards">
+        <div class="card">
+            <div class="value">ok</div>
+            <div class="label">Status</div>
+        </div>
+        <div class="card">
+            <div class="value">no_material_change</div>
+            <div class="label">Overall Posture</div>
+        </div>
+        <div class="card">
+            <div class="value">4</div>
+            <div class="label">Explained Items</div>
+        </div>
+        <div class="card">
+            <div class="value">5</div>
+            <div class="label">Top-N Requested</div>
+        </div>
+    </div>
+
+    <div class="section-note">
+        Provider: <strong>openrouter</strong> |
+        Model: <strong>openrouter/aurora-alpha</strong> |
+        LLM generated_at: 2026-02-14T21:47:03.786712
+    </div>
+
+    <h2>Executive Summary</h2>
+    <p>Four CI manifest files were updated to bump the hostpath plugin image from version 1.17.0 (or 1.16.1) to 1.17.1. The changes do not introduce new security issues nor resolve existing low‑severity hardening findings, resulting in a neutral security posture.</p>
+
+    <h2>Explained Findings</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width:5%">#</th>
+                <th style="width:18%">Commit / File</th>
+                <th style="width:8%">Severity</th>
+                <th style="width:9%">Attack Class</th>
+                <th style="width:8%">Score</th>
+                <th style="width:26%">Impact</th>
+                <th style="width:26%">Recommended Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>1</td>
+                <td>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/external-snapshotter/volume-group-snapshots/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td><span class="badge sev-low">LOW</span></td>
+                <td>AC9</td>
+                <td>0.05</td>
+                <td>No change to attack surface, trust boundaries, or data flow; the only existing finding is the use of the default namespace, which remains unchanged.</td>
+                <td>Consider moving the workload out of the default namespace to address CKV_K8S_21 and keep the image version current.</td>
+            </tr>
+
+
+            <tr>
+                <td>2</td>
+                <td>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/hostpath/hostpath/csi-hostpath-plugin.yaml</div>
+                </td>
+                <td><span class="badge sev-low">LOW</span></td>
+                <td>AC9</td>
+                <td>0.05</td>
+                <td>No impact on security posture; the low‑severity default‑namespace finding persists.</td>
+                <td>Migrate the resource to a dedicated namespace to remediate CKV_K8S_21 and continue tracking image updates.</td>
+            </tr>
+
+
+            <tr>
+                <td>3</td>
+                <td>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-driver.yaml</div>
+                </td>
+                <td><span class="badge sev-medium">MEDIUM</span></td>
+                <td>AC9</td>
+                <td>0.05</td>
+                <td>The medium‑severity findings (capabilities assignment and missing seccomp profile) are unchanged, so the attack surface is not reduced.</td>
+                <td>Remove unnecessary capabilities, set the seccomp profile to runtime/default, and add a liveness probe to address CKV_K8S_37, CKV_K8S_31, and CKV_K8S_8.</td>
+            </tr>
+
+
+            <tr>
+                <td>4</td>
+                <td>
+                    <span class="commit-sha"><a href="https://github.com/kubernetes/kubernetes/commit/7d68b9b996331564eab75f4ab7ba0e30db6a0a96" target="_blank">7d68b9b9</a></span>
+                    <div class="file-path">test/e2e/testing-manifests/storage-csi/mock/csi-mock-proxy.yaml</div>
+                </td>
+                <td><span class="badge sev-medium">MEDIUM</span></td>
+                <td>AC9</td>
+                <td>0.05</td>
+                <td>Medium‑severity hardening issues (capabilities and seccomp) persist, leaving the same risk profile.</td>
+                <td>Apply the same hardening steps as the driver: drop extra capabilities, enforce a default seccomp profile, and configure a liveness probe.</td>
+            </tr>
+
+        </tbody>
+    </table>
+
+
+    <h2>Limitations</h2>
+    <ul>
+        <li>All findings are based on the provided diff and Checkov output; no additional context was available.</li>
+    </ul>
+    <h2>Ignored Findings</h2>
+    <p>0 findings were explicitly ignored by the LLM output.</p>
+</body>
+</html>

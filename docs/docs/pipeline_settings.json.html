@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pipeline_settings.json - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #66bb6a22;
+    color: #66bb6a;
+    border: 1px solid #66bb6a44;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>pipeline_settings.json<span class="badge">RESULT</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 106</span>
+    <span>Type: JSON</span>
+    <span>Category: Result File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code>{
+  &quot;saved_at&quot;: &quot;2026-02-14T20:28:49.806515&quot;,
+  &quot;pipeline_settings&quot;: {
+    &quot;repository&quot;: {
+      &quot;path&quot;: &quot;data/kubernetes&quot;,
+      &quot;url&quot;: &quot;https://github.com/kubernetes/kubernetes&quot;,
+      &quot;branch&quot;: &quot;master&quot;
+    },
+    &quot;extraction&quot;: {
+      &quot;config_path&quot;: &quot;config/security_config.yaml&quot;,
+      &quot;limit&quot;: 100,
+      &quot;iac_only&quot;: true,
+      &quot;iac_paths_only&quot;: false,
+      &quot;verbose&quot;: true
+    },
+    &quot;checkov&quot;: {
+      &quot;timeout&quot;: 60,
+      &quot;framework&quot;: &quot;kubernetes&quot;,
+      &quot;skip_non_yaml&quot;: true,
+      &quot;workers&quot;: 4
+    },
+    &quot;threat_model&quot;: {
+      &quot;skip_non_k8s&quot;: true
+    },
+    &quot;llm_explainer&quot;: {
+      &quot;config_path&quot;: &quot;config/llm_explainer_config.yaml&quot;,
+      &quot;enabled&quot;: true,
+      &quot;top_n&quot;: 5,
+      &quot;timeout_seconds&quot;: 30,
+      &quot;max_output_tokens&quot;: 1800,
+      &quot;temperature&quot;: 0.2,
+      &quot;model&quot;: &quot;openrouter/aurora-alpha&quot;,
+      &quot;max_model_attempts&quot;: 4,
+      &quot;paid_fallback_models&quot;: [
+        &quot;openrouter/aurora-alpha&quot;,
+        &quot;openrouter/auto&quot;
+      ],
+      &quot;fallback_models&quot;: [
+        &quot;openrouter/auto&quot;,
+        &quot;nousresearch/hermes-3-llama-3.1-405b:free&quot;,
+        &quot;deepseek/deepseek-r1-0528:free&quot;,
+        &quot;qwen/qwen3-coder:free&quot;,
+        &quot;mistralai/mistral-small-3.1-24b-instruct:free&quot;
+      ],
+      &quot;free_fallback_models&quot;: [
+        &quot;meta-llama/llama-3.3-70b-instruct:free&quot;,
+        &quot;deepseek/deepseek-r1-0528:free&quot;,
+        &quot;qwen/qwen3-coder:free&quot;,
+        &quot;mistralai/mistral-small-3.1-24b-instruct:free&quot;
+      ],
+      &quot;discover_free_models&quot;: false,
+      &quot;max_discovered_models&quot;: 6,
+      &quot;allow_paid_fallback&quot;: true,
+      &quot;base_url&quot;: &quot;https://openrouter.ai/api/v1&quot;,
+      &quot;http_referer&quot;: &quot;http://localhost:5000&quot;,
+      &quot;app_title&quot;: &quot;SecurityExtractorPipeline&quot;,
+      &quot;prompt_template&quot;: &quot;config/llm_prompt_template.txt&quot;
+    },
+    &quot;comparison&quot;: {
+      &quot;weights&quot;: {
+        &quot;keyword&quot;: 0.1,
+        &quot;checkov&quot;: 0.45,
+        &quot;threat_model&quot;: 0.45
+      },
+      &quot;severity_weights&quot;: {
+        &quot;CRITICAL&quot;: 10,
+        &quot;HIGH&quot;: 5,
+        &quot;MEDIUM&quot;: 2,
+        &quot;LOW&quot;: 1,
+        &quot;INFO&quot;: 0
+      },
+      &quot;csi_threshold&quot;: 0.3
+    },
+    &quot;attack_classes&quot;: {
+      &quot;config_path&quot;: &quot;config/attack_classes.yaml&quot;
+    },
+    &quot;output&quot;: {
+      &quot;directory&quot;: &quot;output&quot;,
+      &quot;extraction_jsonl&quot;: &quot;security_results.jsonl&quot;,
+      &quot;checkov_json&quot;: &quot;checkov_results.json&quot;,
+      &quot;threat_model_json&quot;: &quot;threat_model_results.json&quot;,
+      &quot;full_pytm_json&quot;: &quot;full_pytm_results.json&quot;,
+      &quot;comparison_json&quot;: &quot;comparison_results.json&quot;,
+      &quot;llm_explanations_json&quot;: &quot;llm_explanations.json&quot;,
+      &quot;extraction_report_html&quot;: &quot;git_security_deltas_report.html&quot;,
+      &quot;comparison_report_html&quot;: &quot;comparison_report.html&quot;,
+      &quot;llm_explainer_report_html&quot;: &quot;llm_explainer_report.html&quot;
+    },
+    &quot;logging&quot;: {
+      &quot;level&quot;: &quot;INFO&quot;,
+      &quot;format&quot;: &quot;%(asctime)s [%(name)s] %(levelname)s %(message)s&quot;,
+      &quot;run_log_dir&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849&quot;,
+      &quot;log_files&quot;: {
+        &quot;pipeline_full&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/pipeline_full.log&quot;,
+        &quot;pipeline_runner&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/pipeline_runner.log&quot;,
+        &quot;security_extraction&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/security_extraction.log&quot;,
+        &quot;checkov&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/checkov.log&quot;,
+        &quot;delta_threat_model&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/delta_threat_model.log&quot;,
+        &quot;full_pytm&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/full_pytm.log&quot;,
+        &quot;llm_explainer&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/llm_explainer.log&quot;,
+        &quot;comparison&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/comparison.log&quot;,
+        &quot;reporting&quot;: &quot;/Users/wolowskv/PycharmProjects/SecurityExtractor/output/logs/20260214_202849/reporting.log&quot;
+      }
+    }
+  }
+}</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>

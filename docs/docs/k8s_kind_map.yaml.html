@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>k8s_kind_map.yaml - Security Extractor Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 1.4rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: #4fc3f722;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f744;
+    margin-left: 12px;
+  }
+  .back-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #81d4fa; }
+  .meta-bar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 12px 40px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    display: flex;
+    gap: 24px;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .content-wrapper {
+    padding: 24px 40px;
+  }
+  pre {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .truncation-notice {
+    background: #1c1f26;
+    border: 1px solid #f0ad4e55;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-top: 16px;
+    color: #f0ad4e;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #484f58;
+    font-size: 0.8rem;
+    border-top: 1px solid #21262d;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>k8s_kind_map.yaml<span class="badge">CONFIG</span></h1>
+    </div>
+    <a href="../pipeline_overview.html" class="back-link">&larr; Back to Pipeline Overview</a>
+  </div>
+  <div class="meta-bar">
+    <span>Total Lines: 50</span>
+    <span>Type: YAML</span>
+    <span>Category: Config File</span>
+  </div>
+  <div class="content-wrapper">
+    <pre><code># k8s_kind_map.yaml -- Kubernetes resource kind to PyTM element kind mapping.
+#
+# Maps each K8S resource type to a lightweight PyTM-style element category.
+# Used by PyTMGenerator to build threat model elements from parsed YAML.
+#
+# PyTM element kinds:
+#   Process        -- compute workloads (pods, deployments, etc.)
+#   Dataflow       -- network traffic carriers (services, ingress)
+#   Datastore      -- persistent or configuration data (secrets, configmaps)
+#   Boundary       -- network/namespace boundaries (network policies)
+#   Actor          -- identities and RBAC bindings (service accounts, roles)
+#   ExternalEntity -- auto-generated for public-facing resources
+
+# K8S resource kind -&gt; PyTM element kind
+kind_map:
+  # Workloads -&gt; Process
+  Deployment:          Process
+  Pod:                 Process
+  DaemonSet:           Process
+  StatefulSet:         Process
+  CronJob:             Process
+  Job:                 Process
+  ReplicaSet:          Process
+  # Network -&gt; Dataflow
+  Service:             Dataflow
+  Ingress:             Dataflow
+  # Data -&gt; Datastore
+  Secret:              Datastore
+  ConfigMap:           Datastore
+  PersistentVolumeClaim: Datastore
+  # Boundaries -&gt; Boundary
+  NetworkPolicy:       Boundary
+  Namespace:           Boundary
+  # Identities -&gt; Actor
+  ServiceAccount:      Actor
+  ClusterRole:         Actor
+  Role:                Actor
+  ClusterRoleBinding:  Actor
+  RoleBinding:         Actor
+
+# K8S kinds that are workloads (have pod templates with containers).
+# Used by label inference to navigate pod specs.
+workload_kinds:
+  - Deployment
+  - Pod
+  - DaemonSet
+  - StatefulSet
+  - CronJob
+  - Job
+  - ReplicaSet
+</code></pre>
+    
+  </div>
+  <div class="footer">
+    Security Extractor Pipeline &mdash; File Viewer
+  </div>
+</body>
+</html>
