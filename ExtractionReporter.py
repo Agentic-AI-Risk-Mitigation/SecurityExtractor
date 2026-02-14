@@ -16,9 +16,12 @@ Usage (from memory):
 """
 
 import json
+import logging
 from html import escape
 from datetime import datetime
 from typing import List, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ExtractionReporter:
@@ -396,6 +399,7 @@ class ExtractionReporter:
             raise ValueError("Provide either 'deltas' or 'jsonl_file'.")
 
         if jsonl_file is not None:
+            logger.info("Loading extraction deltas from %s", jsonl_file)
             deltas = self._load_jsonl(jsonl_file)
             source_label = jsonl_file
         else:
@@ -406,8 +410,7 @@ class ExtractionReporter:
         with open(self.output_file, "w", encoding="utf-8") as f:
             f.write(html)
 
-        print(f"Saved HTML report to {self.output_file}")
-        print(f"Total entries: {len(deltas)}")
+        logger.info("Saved extraction report to %s", self.output_file)
+        logger.info("Extraction report rows: %d", len(deltas))
 
         return self.output_file
-

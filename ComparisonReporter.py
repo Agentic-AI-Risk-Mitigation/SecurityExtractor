@@ -16,10 +16,13 @@ Usage (from file):
 """
 
 import json
+import logging
 from collections import Counter
 from datetime import datetime
 from html import escape
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ComparisonReporter:
@@ -51,10 +54,16 @@ class ComparisonReporter:
         self,
         results: Optional[List[Dict]] = None,
         json_file: Optional[str] = None,
+        full_pytm_result: Optional[Dict[str, Any]] = None,
+        full_pytm_json_file: Optional[str] = None,
+        llm_result: Optional[Dict[str, Any]] = None,
+        llm_json_file: Optional[str] = None,
     ) -> str:
         """Build the HTML report and write to disk.
 
         Provide exactly one of ``results`` (in-memory) or ``json_file``.
+        Full native pytm data is optional via ``full_pytm_result`` or
+        ``full_pytm_json_file``.
         Returns the output file path.
         """
         if results is not None and json_file is not None:
@@ -65,30 +74,61 @@ class ComparisonReporter:
             raise ValueError(
                 "Provide either 'results' or 'json_file'."
             )
+        if full_pytm_result is not None and full_pytm_json_file is not None:
+            raise ValueError(
+                "Provide either 'full_pytm_result' or "
+                "'full_pytm_json_file', not both."
+            )
+        if llm_result is not None and llm_json_file is not None:
+            raise ValueError(
+                "Provide either 'llm_result' or 'llm_json_file', not both."
+            )
 
         if json_file is not None:
+            logger.info("Loading comparison results from %s", json_file)
             with open(json_file, "r", encoding="utf-8") as f:
                 results = json.load(f)
             source_label = json_file
         else:
             source_label = "in-memory data"
 
-        html = self._build_html(results, source_label)
+        if full_pytm_json_file is not None:
+            logger.info("Loading full native PyTM results from %s", full_pytm_json_file)
+            with open(full_pytm_json_file, "r", encoding="utf-8") as f:
+                full_pytm_result = json.load(f)
+        if llm_json_file is not None:
+            logger.info("Loading LLM explanations from %s", llm_json_file)
+            with open(llm_json_file, "r", encoding="utf-8") as f:
+                llm_result = json.load(f)
+
+        html = self._build_html(
+            results,
+            source_label,
+            full_pytm_result=full_pytm_result,
+            llm_result=llm_result,
+        )
         with open(self.output_file, "w", encoding="utf-8") as f:
             f.write(html)
 
-        print(f"Saved comparison report to {self.output_file}")
+        logger.info("Saved comparison report to %s", self.output_file)
+        logger.info("Comparison report rows: %d", len(results))
         return self.output_file
 
     # -----------------------------------------------------------------
     # HTML assembly
     # -----------------------------------------------------------------
     def _build_html(
-        self, results: List[Dict], source_label: str
+        self,
+        results: List[Dict],
+        source_label: str,
+        full_pytm_result: Optional[Dict[str, Any]] = None,
+        llm_result: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Assemble the complete HTML document."""
         summary = self._compute_summary(results)
         summary_html = self._render_summary(summary)
+        full_pytm_html = self._render_full_pytm(full_pytm_result)
+        llm_html = self._render_llm_explanations(llm_result)
         ac_html = self._render_ac_breakdown(summary["ac_distribution"])
         macro_only = [r for r in results if r.get("macro_only")]
         macro_html = self._render_macro_only(macro_only)
@@ -251,6 +291,8 @@ class ComparisonReporter:
         .sev-HIGH {{ background: #e53935; color: white; }}
         .sev-MEDIUM {{ background: #ff9800; color: white; }}
         .sev-LOW {{ background: #4caf50; color: white; }}
+        .sev-INFO {{ background: #455a64; color: white; }}
+        .sev-UNKNOWN {{ background: #757575; color: white; }}
 
         /* AC table */
         .ac-bar {{
@@ -354,6 +396,8 @@ class ComparisonReporter:
     </p>
 
     {summary_html}
+    {full_pytm_html}
+    {llm_html}
 
     <h2>Attack Class Distribution</h2>
     {ac_html}
@@ -473,6 +517,175 @@ class ComparisonReporter:
             <div class="card-label">Micro-Only</div>
         </div>
     </div>"""
+
+    def _render_full_pytm(
+        self, full_pytm_result: Optional[Dict[str, Any]]
+    ) -> str:
+        """Render optional native pytm full-snapshot summary."""
+        if not full_pytm_result:
+            return (
+                '<h2>Native PyTM (Full Snapshot)</h2>'
+                '<p class="empty">No full native PyTM results provided.</p>'
+            )
+
+        sev_counts = full_pytm_result.get("severity_counts", {}) or {}
+        sev_html = " ".join(
+            f"<span class='badge badge-severity sev-{escape(str(sev))}'>"
+            f"{escape(str(sev))}: {count}</span>"
+            for sev, count in sorted(sev_counts.items())
+        ) or '<span class="empty">No severities</span>'
+
+        findings = full_pytm_result.get("findings", []) or []
+        top_rows = []
+        for finding in findings[:10]:
+            sev = escape(str(finding.get("severity", "")))
+            fid = escape(str(finding.get("id", "")))
+            target = escape(str(finding.get("target", "")))
+            desc = escape(str(finding.get("description", "")))[:180]
+            top_rows.append(
+                f"<tr>"
+                f"<td><span class='badge badge-severity sev-{sev}'>{sev}</span></td>"
+                f"<td>{fid or '-'}</td>"
+                f"<td>{target or '-'}</td>"
+                f"<td>{desc or '-'}</td>"
+                f"</tr>"
+            )
+
+        top_findings_html = (
+            "<table>"
+            "<thead><tr>"
+            "<th style='width:10%'>Severity</th>"
+            "<th style='width:18%'>Threat ID</th>"
+            "<th style='width:22%'>Target</th>"
+            "<th>Description</th>"
+            "</tr></thead>"
+            f"<tbody>{''.join(top_rows)}</tbody>"
+            "</table>"
+            if top_rows
+            else '<p class="empty">No native PyTM findings.</p>'
+        )
+
+        generated_at = escape(str(full_pytm_result.get("generated_at", "-")))
+        repo_path = escape(str(full_pytm_result.get("repo_path", "-")))
+        files_scanned = int(full_pytm_result.get("files_scanned", 0))
+        docs_parsed = int(full_pytm_result.get("documents_parsed", 0))
+        element_count = int(full_pytm_result.get("element_count", 0))
+        flow_count = int(full_pytm_result.get("flow_count", 0))
+        finding_count = int(full_pytm_result.get("finding_count", 0))
+
+        return f"""
+    <h2>Native PyTM (Full Snapshot)</h2>
+    <div class="section-note">
+        Repository-wide native pytm execution metadata.
+    </div>
+    <div class="cards">
+        <div class="card">
+            <div class="card-value">{files_scanned}</div>
+            <div class="card-label">Files Scanned</div>
+        </div>
+        <div class="card">
+            <div class="card-value">{docs_parsed}</div>
+            <div class="card-label">Docs Parsed</div>
+        </div>
+        <div class="card">
+            <div class="card-value">{element_count}</div>
+            <div class="card-label">Elements</div>
+        </div>
+        <div class="card">
+            <div class="card-value">{flow_count}</div>
+            <div class="card-label">Flows</div>
+        </div>
+        <div class="card">
+            <div class="card-value">{finding_count}</div>
+            <div class="card-label">Findings</div>
+        </div>
+    </div>
+    <p class="subtitle">
+        Generated: {generated_at} |
+        Snapshot: {repo_path}
+    </p>
+    <div>{sev_html}</div>
+    <h2>Native PyTM Top Findings</h2>
+    {top_findings_html}
+"""
+
+    def _render_llm_explanations(
+        self, llm_result: Optional[Dict[str, Any]]
+    ) -> str:
+        """Render optional LLM explanation output."""
+        if not llm_result:
+            return (
+                '<h2>LLM Explainer (OpenRouter)</h2>'
+                '<p class="empty">No LLM explanation results provided.</p>'
+            )
+
+        status = escape(str(llm_result.get("status", "unknown")))
+        model = escape(str(llm_result.get("model", "-")))
+        generated_at = escape(str(llm_result.get("generated_at", "-")))
+        posture = escape(str(llm_result.get("overall_posture", "unknown")))
+        top_n = int(llm_result.get("top_n_used", 0))
+        summary = escape(str(llm_result.get("executive_summary", "")))
+        limitations = llm_result.get("limitations", []) or []
+
+        items = llm_result.get("items", []) or []
+        rows = []
+        for item in items[:10]:
+            rank = int(item.get("rank", 0))
+            sha = escape(str(item.get("commit_sha", ""))[:8])
+            file_path = escape(str(item.get("file_path", "")))
+            severity = escape(str(item.get("severity", "unknown")).upper())
+            attack_class = escape(str(item.get("attack_class", "")))
+            impact = escape(str(item.get("security_impact", ""))[:200])
+            action = escape(str(item.get("recommended_action", ""))[:180])
+            score = float(item.get("composite_score", 0.0))
+            rows.append(
+                f"<tr>"
+                f"<td>{rank}</td>"
+                f"<td>{sha}<br><span class='file-path'>{file_path}</span></td>"
+                f"<td><span class='badge badge-severity sev-{severity}'>{severity}</span></td>"
+                f"<td>{attack_class or '-'}</td>"
+                f"<td>{score:.2f}</td>"
+                f"<td>{impact or '-'}</td>"
+                f"<td>{action or '-'}</td>"
+                f"</tr>"
+            )
+
+        limitation_html = (
+            "".join(f"<li>{escape(str(lim))}</li>" for lim in limitations)
+            if limitations
+            else "<li>None reported.</li>"
+        )
+        items_html = (
+            "<table>"
+            "<thead><tr>"
+            "<th style='width:5%'>#</th>"
+            "<th style='width:17%'>Commit / File</th>"
+            "<th style='width:8%'>Severity</th>"
+            "<th style='width:10%'>Attack Class</th>"
+            "<th style='width:8%'>Score</th>"
+            "<th style='width:27%'>Security Impact</th>"
+            "<th style='width:25%'>Recommended Action</th>"
+            "</tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody>"
+            "</table>"
+            if rows
+            else '<p class="empty">No LLM items produced.</p>'
+        )
+
+        return f"""
+    <h2>LLM Explainer (OpenRouter)</h2>
+    <div class="section-note">
+        Status: <strong>{status}</strong> |
+        Model: <strong>{model}</strong> |
+        Generated: {generated_at} |
+        Overall Posture: <strong>{posture}</strong> |
+        Items: <strong>{top_n}</strong>
+    </div>
+    <p>{summary or '<span class="empty">No executive summary.</span>'}</p>
+    {items_html}
+    <h2>LLM Limitations</h2>
+    <ul>{limitation_html}</ul>
+"""
 
     def _render_ac_breakdown(
         self, ac_dist: Dict[str, int]

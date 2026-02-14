@@ -5,6 +5,7 @@ SecurityDeltaExtractor.py - Class-based Offline Git Repository Security Analysis
 
 import difflib
 import json
+import logging
 import yaml
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,9 @@ from dataclasses import dataclass, field
 
 import git
 from git import Repo
+
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class SecurityConfig:
@@ -26,7 +30,7 @@ class SecurityConfig:
     def from_yaml(cls, config_path: str = "security_config.yaml") -> "SecurityConfig":
         path = Path(config_path)
         if not path.exists():
-            print(f"Config {config_path} not found. Using defaults.")
+            logger.warning("Config %s not found. Using defaults.", config_path)
             return cls()
         with open(path, "r") as f:
             raw = yaml.safe_load(f) or {}
@@ -143,9 +147,10 @@ class SecurityDeltaExtractor:
             commits_scanned += 1
 
             if verbose and commits_scanned % 500 == 0:
-                print(
-                    f"   Scanned {commits_scanned} commits, "
-                    f"found {security_commits_found} security-related..."
+                logger.info(
+                    "Scanned %d commits, found %d security-related.",
+                    commits_scanned,
+                    security_commits_found,
                 )
 
             if since_date:
@@ -161,7 +166,12 @@ class SecurityDeltaExtractor:
 
             if verbose:
                 short_msg = commit.message.split("\n")[0][:50]
-                print(f"   [{security_commits_found}] {commit.hexsha[:7]}: {short_msg}...")
+                logger.info(
+                    "[%d] %s: %s...",
+                    security_commits_found,
+                    commit.hexsha[:7],
+                    short_msg,
+                )
 
             if not commit.parents:
                 continue
@@ -210,7 +220,7 @@ class SecurityDeltaExtractor:
 
             if security_commits_found >= limit:
                 if verbose:
-                    print(f"\nReached limit of {limit} security commits")
+                    logger.info("Reached limit of %d security commits", limit)
                 break
 
         if verbose:
@@ -227,12 +237,12 @@ class SecurityDeltaExtractor:
             pass
         try:
             if verbose:
-                print(f"Branch '{branch}' not found, using 'master'")
+                logger.info("Branch '%s' not found, using 'master'", branch)
             return self.repo.iter_commits("master", max_count=max_count)
         except git.exc.GitCommandError:
             pass
         if verbose:
-            print("Using HEAD")
+            logger.info("Using HEAD")
         return self.repo.iter_commits("HEAD", max_count=max_count)
 
     @staticmethod
@@ -242,30 +252,30 @@ class SecurityDeltaExtractor:
         try:
             return datetime.fromisoformat(since)
         except ValueError:
-            print(f"Invalid date format: {since}, ignoring")
+            logger.warning("Invalid date format: %s, ignoring", since)
             return None
 
     def _print_header(self, branch: str, limit: int, since: Optional[str]):
-        print(f"\n{'=' * 60}")
-        print("OFFLINE SECURITY DELTA EXTRACTION")
-        print(f"{'=' * 60}")
-        print(f"Repository: {self.repo_path}")
-        print(f"Branch: {branch}")
-        print(f"Keywords: {len(self.config.keywords)} configured")
-        print(f"Limit: {limit} commits")
+        logger.info("%s", "=" * 60)
+        logger.info("OFFLINE SECURITY DELTA EXTRACTION")
+        logger.info("%s", "=" * 60)
+        logger.info("Repository: %s", self.repo_path)
+        logger.info("Branch: %s", branch)
+        logger.info("Keywords: %d configured", len(self.config.keywords))
+        logger.info("Limit: %d commits", limit)
         if since:
-            print(f"Since: {since}")
-        print(f"{'=' * 60}\n")
+            logger.info("Since: %s", since)
+        logger.info("%s", "=" * 60)
 
     @staticmethod
     def _print_summary(scanned: int, security: int, deltas: int):
-        print(f"\n{'=' * 60}")
-        print("EXTRACTION COMPLETE")
-        print(f"{'=' * 60}")
-        print(f"   Commits scanned:       {scanned:,}")
-        print(f"   Security commits:      {security:,}")
-        print(f"   Deltas extracted:      {deltas:,}")
-        print(f"{'=' * 60}\n")
+        logger.info("%s", "=" * 60)
+        logger.info("EXTRACTION COMPLETE")
+        logger.info("%s", "=" * 60)
+        logger.info("Commits scanned: %s", f"{scanned:,}")
+        logger.info("Security commits: %s", f"{security:,}")
+        logger.info("Deltas extracted: %s", f"{deltas:,}")
+        logger.info("%s", "=" * 60)
 
 
     @staticmethod
@@ -274,4 +284,4 @@ class SecurityDeltaExtractor:
         with open(filepath, "w", encoding="utf-8") as f:
             for entry in data:
                 f.write(json.dumps(entry, default=str, ensure_ascii=False) + "\n")
-        print(f"Saved {len(data)} entries to {filepath}")
+        logger.info("Saved %d entries to %s", len(data), filepath)

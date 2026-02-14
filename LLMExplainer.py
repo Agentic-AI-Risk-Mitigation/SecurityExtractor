@@ -22,25 +22,59 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_PROMPT = """You are a Senior DevSecOps Architect and Security Analyst.
 Explain only what is supported by the provided structured findings.
-Return strict JSON only with:
+Ground every claim in the diff or scanner output. Do not invent facts.
+
+Return strict JSON only matching this schema:
 {
   "overall_posture": "regression|improvement|mixed|no_material_change",
-  "executive_summary": "string",
+  "executive_summary": "2-3 sentence overview of the security delta.",
   "items": [
     {
-      "title": "string",
+      "title": "Short, specific title of the issue or fix",
       "posture_direction": "regression|improvement|neutral",
       "severity": "critical|high|medium|low|info|unknown",
-      "attack_class": "string",
-      "vulnerability_summary": "string",
-      "security_impact": "string",
-      "recommended_action": "string",
+      "attack_class": "AC ID from taxonomy, or unknown",
+      "vulnerability_summary": "1-3 sentence explanation of the risk.",
+      "security_impact": "How attack surface / trust boundary / data flow changed.",
+      "recommended_action": "Concise fix instruction for the developer.",
       "confidence": 0.0
     }
   ],
-  "limitations": ["string"]
+  "ignored_findings": [
+    {
+      "rule_id": "string",
+      "reason": "Why excluded (not touched by diff, false positive, etc.)"
+    }
+  ],
+  "limitations": ["Any missing inputs or low-confidence observations."]
 }
+
+Output one item per finding in top_findings, in the same order.
+Keep each field concise: 1-3 sentences for summaries, 1-2 for actions.
 """
+
+_PROMPT_RUNTIME_RULES = """RUNTIME RULES (override any conflicting template text):
+1) Use ONLY the PIPELINE INPUT JSON below as ground truth; ignore unresolved placeholder syntax like {{...}}.
+2) If top_findings is non-empty, output at least min(3, len(top_findings)) items.
+3) If a finding appears pre-existing/unchanged by the diff, still output an item with posture_direction="neutral"
+   and explain security context + remediation as technical debt.
+4) Treat top_findings[].threat_findings_top as macro threat-model events (may be empty).
+5) Keep JSON valid and concise; no prose outside JSON.
+"""
+
+
+class OpenRouterModelsExhausted(RuntimeError):
+    """Raised when all configured OpenRouter models fail."""
+
+    def __init__(
+        self,
+        message: str,
+        attempts: List[str],
+        errors: List[str],
+    ) -> None:
+        super().__init__(message)
+        self.attempts = attempts
+        self.errors = errors
 
 
 class LLMExplainer:
@@ -54,19 +88,56 @@ class LLMExplainer:
         cfg = config.get("llm_explainer", {})
         self.enabled: bool = bool(cfg.get("enabled", True))
         self.top_n: int = int(cfg.get("top_n", 5))
-        self.timeout_seconds: int = int(cfg.get("timeout_seconds", 90))
+        self.timeout_seconds: int = int(cfg.get("timeout_seconds", 30))
         self.max_output_tokens: int = int(cfg.get("max_output_tokens", 1800))
         self.temperature: float = float(cfg.get("temperature", 0.2))
         self.model: str = (
             os.environ.get("OPENROUTER_MODEL")
-            or cfg.get("model", "deepseek/deepseek-chat-v3-0324:free")
+            or cfg.get("model", "openrouter/aurora-alpha")
         )
+        self.max_model_attempts: int = int(cfg.get("max_model_attempts", 4))
+        self.fallback_models: List[str] = list(
+            cfg.get(
+                "fallback_models",
+                [
+                    "openrouter/auto",
+                    "meta-llama/llama-3.3-70b-instruct:free",
+                    "deepseek/deepseek-r1-0528:free",
+                ],
+            )
+        )
+        self.paid_fallback_models: List[str] = list(
+            cfg.get(
+                "paid_fallback_models",
+                [
+                    "openrouter/aurora-alpha",
+                    "openrouter/auto",
+                ],
+            )
+        )
+        self.free_fallback_models: List[str] = list(
+            cfg.get(
+                "free_fallback_models",
+                [
+                    "deepseek/deepseek-r1-0528:free",
+                    "qwen/qwen3-coder:free",
+                    "mistralai/mistral-small-3.1-24b-instruct:free",
+                ],
+            )
+        )
+        self.discover_free_models: bool = bool(cfg.get("discover_free_models", False))
+        self.max_discovered_models: int = int(cfg.get("max_discovered_models", 6))
+        self.allow_paid_fallback: bool = bool(cfg.get("allow_paid_fallback", True))
         self.base_url: str = cfg.get("base_url", "https://openrouter.ai/api/v1")
         self.http_referer: str = cfg.get("http_referer", "http://localhost:5000")
         self.app_title: str = cfg.get("app_title", "SecurityExtractorPipeline")
+        self.prompt_template_text: str = str(cfg.get("prompt_template_text", "")).strip()
 
         template_path = Path(prompt_template_path) if prompt_template_path else None
-        self.prompt_template = self._load_prompt_template(template_path)
+        if self.prompt_template_text:
+            self.prompt_template = self.prompt_template_text
+        else:
+            self.prompt_template = self._load_prompt_template(template_path)
 
     def explain_from_files(
         self,
@@ -143,18 +214,14 @@ class LLMExplainer:
                 "top_n_selected": len(top_items),
             },
             "full_pytm_summary": full_pytm_summary,
+            "attack_class_taxonomy": self._attack_class_taxonomy(),
             "top_findings": [
                 self._build_finding_context(item, extraction_context)
                 for item in top_items
             ],
         }
 
-        user_prompt = (
-            f"{self.prompt_template}\n\n"
-            "PIPELINE INPUT JSON (ground truth):\n"
-            f"{json.dumps(prompt_payload, ensure_ascii=False, indent=2)}\n\n"
-            "Output JSON only."
-        )
+        user_prompt = self._build_user_prompt(prompt_payload)
         messages = [
             {"role": "system", "content": "You are a strict JSON security explainer."},
             {"role": "user", "content": user_prompt},
@@ -162,29 +229,55 @@ class LLMExplainer:
 
         llm_raw = ""
         llm_parsed: Dict[str, Any] = {}
+        model_used = self.model
+        model_attempts: List[str] = []
         try:
-            llm_raw = self._call_openrouter(messages=messages, api_key=api_key)
+            llm_raw, model_used, model_attempts = self._call_openrouter(
+                messages=messages,
+                api_key=api_key,
+            )
             llm_parsed = self._parse_json_response(llm_raw)
+        except OpenRouterModelsExhausted as exc:
+            # Expected operational condition (model availability / credits), not a crash.
+            logger.warning("LLM explanations unavailable: %s", exc)
+            return self._skipped_result(
+                reason=str(exc),
+                generated_at=start,
+                attempted_models=exc.attempts,
+                top_n_used=len(top_items),
+            )
         except Exception as exc:
             logger.exception("LLM explanation call failed.")
             return self._error_result(
                 error=str(exc),
                 generated_at=start,
                 top_items=top_items,
+                attempted_models=model_attempts,
             )
 
-        normalized_items = self._normalize_items(top_items, llm_parsed.get("items", []))
+        parsed_items = llm_parsed.get("items")
+        if isinstance(parsed_items, list) and len(parsed_items) == 0:
+            normalized_items = self._synthesize_items_from_findings(top_items)
+            limitations = list(llm_parsed.get("limitations", []))
+            limitations.append(
+                "LLM returned no items; synthetic explanations were generated from top findings."
+            )
+        else:
+            normalized_items = self._normalize_items(top_items, parsed_items or [])
+            limitations = llm_parsed.get("limitations", [])
         return {
             "status": "ok",
             "generated_at": start,
             "provider": "openrouter",
-            "model": self.model,
+            "model": model_used,
+            "model_attempts": model_attempts,
             "top_n_requested": self.top_n,
             "top_n_used": len(top_items),
             "overall_posture": llm_parsed.get("overall_posture", "unknown"),
             "executive_summary": llm_parsed.get("executive_summary", ""),
             "items": normalized_items,
-            "limitations": llm_parsed.get("limitations", []),
+            "ignored_findings": llm_parsed.get("ignored_findings", []),
+            "limitations": limitations,
             "llm_raw_response": llm_raw,
             "llm_parsed_response": llm_parsed,
             "input_files": {
@@ -218,24 +311,118 @@ class LLMExplainer:
         return f"{item.get('commit_sha', '')}:{item.get('file_path', '')}"
 
     def _select_top_items(self, comparison_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        def explainability_score(r: Dict[str, Any]) -> float:
+            csi = 1.0 if r.get("is_csi") else 0.0
+            composite = float(r.get("composite_score", 0.0))
+            change_signal = float(
+                abs(int(r.get("checkov_delta", 0)))
+                + abs(int(r.get("threat_risk_delta", 0)))
+                + int(r.get("threat_finding_count", 0))
+            )
+            checkov_after = min(
+                len(r.get("checkov_findings_after", []) or []), 5
+            )
+            regression_boost = 0.5 if r.get("posture_direction") == "regression" else 0.0
+            return (csi * 2.0) + composite + (change_signal * 0.3) + (checkov_after * 0.08) + regression_boost
+
         scored = sorted(
             comparison_results,
-            key=lambda r: (
-                1 if r.get("is_csi") else 0,
-                float(r.get("composite_score", 0.0)),
-                abs(int(r.get("checkov_delta", 0))) + abs(int(r.get("threat_risk_delta", 0))),
-                int(r.get("threat_finding_count", 0)),
-            ),
+            key=lambda r: explainability_score(r),
             reverse=True,
         )
         material = [
             r for r in scored
-            if r.get("is_csi")
-            or int(r.get("checkov_delta", 0)) != 0
+            if int(r.get("checkov_delta", 0)) != 0
+            or int(r.get("threat_risk_delta", 0)) != 0
             or int(r.get("threat_finding_count", 0)) > 0
+            or len(r.get("checkov_findings_after", []) or []) > 0
+            or r.get("is_csi")
         ]
         base = material if material else scored
         return base[: max(1, self.top_n)]
+
+    def _attack_class_taxonomy(self) -> Dict[str, str]:
+        """Best-effort attack class taxonomy for richer LLM mapping."""
+        taxonomy: Dict[str, str] = {}
+        cfg_path = Path(__file__).resolve().parent / "config" / "attack_classes.yaml"
+        try:
+            if not cfg_path.exists():
+                return {}
+            import yaml  # local import to keep optional dependency surface small
+
+            with open(cfg_path, "r", encoding="utf-8") as fh:
+                data = yaml.safe_load(fh) or {}
+            for entry in data.get("attack_classes", []):
+                ac_id = str(entry.get("id", "")).strip()
+                ac_name = str(entry.get("name", "")).strip()
+                if ac_id:
+                    taxonomy[ac_id] = ac_name
+        except Exception:
+            return {}
+        return taxonomy
+
+    def _build_user_prompt(self, payload: Dict[str, Any]) -> str:
+        return (
+            f"{self.prompt_template}\n\n"
+            f"{_PROMPT_RUNTIME_RULES}\n\n"
+            "PIPELINE INPUT JSON (ground truth):\n"
+            f"{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+            "Output JSON only."
+        )
+
+    @staticmethod
+    def _synthesize_items_from_findings(
+        top_items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Deterministic fallback when the LLM returns no per-item explanations."""
+        synthesized: List[Dict[str, Any]] = []
+        for idx, base in enumerate(top_items[:5], start=1):
+            checkov_after = base.get("checkov_findings_after", []) or []
+            first_ck = checkov_after[0] if checkov_after else {}
+            rule_id = str(first_ck.get("rule_id", "")).strip()
+            title = str(first_ck.get("title", "")).strip()
+            posture = base.get("posture_direction", "neutral")
+            if posture not in {"regression", "improvement", "neutral"}:
+                posture = "neutral"
+            severity = str(first_ck.get("severity", "unknown")).lower()
+            if severity not in {"critical", "high", "medium", "low", "info"}:
+                severity = "unknown"
+            attack_class = base.get("attack_class", "")
+            synth_title = (
+                title
+                or f"Security context for {base.get('file_path', 'changed file')}"
+            )
+            synth_impact = (
+                f"Checkov findings after-change: {len(checkov_after)}; "
+                f"delta={base.get('checkov_delta', 0)}, "
+                f"threat_delta={base.get('threat_risk_delta', 0)}."
+            )
+            synth_action = (
+                f"Review and remediate rule {rule_id} in this file."
+                if rule_id else
+                "Review scanner findings and apply secure defaults."
+            )
+            synth_summary = (
+                "The change touches a file with scanner-detected security findings. "
+                "Treat as security-relevant technical debt even if posture delta is neutral."
+            )
+            synthesized.append(
+                {
+                    "rank": idx,
+                    "commit_sha": base.get("commit_sha", ""),
+                    "file_path": base.get("file_path", ""),
+                    "composite_score": base.get("composite_score", 0.0),
+                    "posture_direction": posture,
+                    "severity": severity,
+                    "attack_class": attack_class,
+                    "title": synth_title,
+                    "vulnerability_summary": synth_summary,
+                    "security_impact": synth_impact,
+                    "recommended_action": synth_action,
+                    "confidence": 0.35,
+                }
+            )
+        return synthesized
 
     @staticmethod
     def _load_extraction_context(path: Path, keys: Set[str]) -> Dict[str, Dict[str, Any]]:
@@ -330,9 +517,121 @@ class LLMExplainer:
             "diff_excerpt": ext.get("diff", ""),
         }
 
-    def _call_openrouter(self, messages: List[Dict[str, str]], api_key: str) -> str:
+    @staticmethod
+    def _split_models(value: str) -> List[str]:
+        return [part.strip() for part in value.split(",") if part.strip()]
+
+    def _discover_free_models(self, api_key: str) -> List[str]:
+        """Best-effort discovery of currently available free OpenRouter models."""
+        request = urllib.request.Request(
+            url=f"{self.base_url.rstrip('/')}/models",
+            method="GET",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": self.http_referer,
+                "X-Title": self.app_title,
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                raw = response.read().decode("utf-8", errors="replace")
+            payload = json.loads(raw)
+        except Exception as exc:
+            logger.warning("Unable to discover OpenRouter models dynamically: %s", exc)
+            return []
+
+        data = payload.get("data", []) if isinstance(payload, dict) else []
+        discovered: List[str] = []
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            model_id = str(item.get("id", "")).strip()
+            if not model_id:
+                continue
+
+            pricing = item.get("pricing", {}) if isinstance(item.get("pricing"), dict) else {}
+            prompt_price = str(pricing.get("prompt", "")).strip()
+            completion_price = str(pricing.get("completion", "")).strip()
+            is_zero_price = (
+                prompt_price in {"0", "0.0", "0.00"}
+                and completion_price in {"0", "0.0", "0.00"}
+            )
+            if model_id.endswith(":free") or is_zero_price:
+                discovered.append(model_id)
+            if len(discovered) >= self.max_discovered_models:
+                break
+        return discovered
+
+    def _candidate_models(self, api_key: str) -> List[str]:
+        candidates: List[str] = [self.model]
+        if self.allow_paid_fallback:
+            candidates.extend(self.paid_fallback_models)
+        env_fallback = os.environ.get("OPENROUTER_FALLBACK_MODELS", "")
+        if env_fallback:
+            candidates.extend(self._split_models(env_fallback))
+        candidates.extend(self.fallback_models)
+        candidates.extend(self.free_fallback_models)
+        if self.discover_free_models:
+            candidates.extend(self._discover_free_models(api_key))
+
+        deduped: List[str] = []
+        seen = set()
+        for model in candidates:
+            if not model or model in seen:
+                continue
+            seen.add(model)
+            deduped.append(model)
+        if self.max_model_attempts > 0:
+            return deduped[: self.max_model_attempts]
+        return deduped
+
+    def _call_openrouter(
+        self,
+        messages: List[Dict[str, str]],
+        api_key: str,
+    ) -> tuple[str, str, List[str]]:
+        errors: List[str] = []
+        attempts: List[str] = []
+
+        for model in self._candidate_models(api_key):
+            attempts.append(model)
+            try:
+                content = self._call_openrouter_once(
+                    model=model,
+                    messages=messages,
+                    api_key=api_key,
+                )
+                if model != self.model:
+                    logger.warning(
+                        "Primary model '%s' unavailable. Switched to '%s'.",
+                        self.model,
+                        model,
+                    )
+                return content, model, attempts
+            except RuntimeError as exc:
+                err = str(exc)
+                errors.append(f"{model}: {err}")
+                logger.warning(
+                    "OpenRouter call failed for model '%s': %s",
+                    model,
+                    err,
+                )
+                continue
+
+        raise OpenRouterModelsExhausted(
+            "All OpenRouter model attempts failed: " + " | ".join(errors),
+            attempts=attempts,
+            errors=errors,
+        )
+
+    def _call_openrouter_once(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        api_key: str,
+    ) -> str:
         payload = {
-            "model": self.model,
+            "model": model,
             "messages": messages,
             "temperature": self.temperature,
             "max_tokens": self.max_output_tokens,
@@ -473,15 +772,22 @@ class LLMExplainer:
         self._load_dotenv(local_env)
         return os.environ.get("OPENROUTER_API_KEY", "")
 
-    def _skipped_result(self, reason: str, generated_at: str) -> Dict[str, Any]:
+    def _skipped_result(
+        self,
+        reason: str,
+        generated_at: str,
+        attempted_models: Optional[List[str]] = None,
+        top_n_used: int = 0,
+    ) -> Dict[str, Any]:
         logger.warning("Skipping LLM explanations: %s", reason)
         return {
             "status": "skipped",
             "generated_at": generated_at,
             "provider": "openrouter",
             "model": self.model,
+            "model_attempts": attempted_models or [],
             "top_n_requested": self.top_n,
-            "top_n_used": 0,
+            "top_n_used": top_n_used,
             "overall_posture": "unknown",
             "executive_summary": "",
             "items": [],
@@ -495,6 +801,7 @@ class LLMExplainer:
         error: str,
         generated_at: str,
         top_items: Optional[List[Dict[str, Any]]] = None,
+        attempted_models: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         logger.error("LLM explanation error: %s", error)
         return {
@@ -502,6 +809,7 @@ class LLMExplainer:
             "generated_at": generated_at,
             "provider": "openrouter",
             "model": self.model,
+            "model_attempts": attempted_models or [],
             "top_n_requested": self.top_n,
             "top_n_used": len(top_items) if top_items else 0,
             "overall_posture": "unknown",
@@ -521,7 +829,7 @@ def _build_cli_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-json", required=True, help="Path to write llm_explanations.json")
     parser.add_argument(
         "--prompt-template",
-        default="docu/llm_prompt_example.txt",
+        default="config/llm_prompt_template.txt",
         help="Path to LLM prompt template text",
     )
     parser.add_argument(

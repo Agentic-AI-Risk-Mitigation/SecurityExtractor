@@ -126,6 +126,7 @@ class CheckovScanner:
         self.timeout: int = checkov_cfg.get("timeout", 60)
         self.skip_non_yaml: bool = checkov_cfg.get("skip_non_yaml", True)
         self.workers: int = checkov_cfg.get("workers", 4)
+        self.framework: str = checkov_cfg.get("framework", "kubernetes")
 
         # --- Attack classes (AC1-AC11) ------------------------------------
         if attack_classes_cfg is None:
@@ -410,7 +411,7 @@ class CheckovScanner:
                 [
                     "checkov",
                     "-f", tmp_path,
-                    "--framework", "kubernetes",
+                    "--framework", self.framework,
                     "--output", "json",
                     "--compact",
                     "--quiet",
@@ -419,6 +420,14 @@ class CheckovScanner:
                 text=True,
                 timeout=timeout,
             )
+            if result.returncode not in (0, 1):
+                err = (result.stderr or "").strip().replace("\n", " ")
+                logger.warning(
+                    "Checkov exited with code %d on %s%s",
+                    result.returncode,
+                    filename,
+                    f" (stderr: {err[:300]})" if err else "",
+                )
         except FileNotFoundError:
             logger.warning("Checkov not found on PATH -- install with: pip install checkov")
             return []
@@ -489,7 +498,8 @@ class CheckovScanner:
             for check in failed_checks:
                 rule_id = check.get("check_id", "")
                 title = (
-                    check.get("check_result", {}).get("name", "")
+                    check.get("check_name", "")
+                    or check.get("check_result", {}).get("name", "")
                     or check.get("name", "")
                 )
                 line_range = check.get("file_line_range", [0, 0])

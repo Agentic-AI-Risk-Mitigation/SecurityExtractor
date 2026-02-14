@@ -61,6 +61,7 @@ class LLMExplainerReporter:
             if limitations
             else "<li>None reported.</li>"
         )
+        ignored_findings = result.get("ignored_findings", []) or []
 
         items = result.get("items", []) or []
         rows = "\n".join(self._render_item_row(item) for item in items[:20])
@@ -254,6 +255,8 @@ class LLMExplainerReporter:
     <ul>
         {limitations_html}
     </ul>
+    <h2>Ignored Findings</h2>
+    <p>{len(ignored_findings)} findings were explicitly ignored by the LLM output.</p>
 </body>
 </html>
 """
