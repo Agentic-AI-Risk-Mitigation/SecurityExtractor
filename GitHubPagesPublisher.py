@@ -37,6 +37,17 @@ class GitHubPagesPublisher:
             )
         )
         self.include_dirs: List[str] = list(config.get("include_dirs", ["docs"]))
+        self.strict_required_artifacts = bool(
+            config.get("strict_required_artifacts", True)
+        )
+        required = config.get("required_artifacts")
+        if isinstance(required, list):
+            self.required_artifacts = [str(item) for item in required if str(item).strip()]
+        else:
+            self.required_artifacts = [
+                *self.include_files,
+                *self.include_dirs,
+            ]
         self.auto_commit = bool(config.get("auto_commit", False))
         self.auto_push = bool(config.get("auto_push", False))
         self.commit_message = str(
@@ -61,6 +72,15 @@ class GitHubPagesPublisher:
 
         output_path = Path(output_dir)
         self.site_dir.mkdir(parents=True, exist_ok=True)
+
+        missing_required_sources = [
+            rel for rel in self.required_artifacts if not (output_path / rel).exists()
+        ]
+        if missing_required_sources and self.strict_required_artifacts:
+            raise RuntimeError(
+                "Missing required output artifacts for GitHub Pages publish: "
+                + ", ".join(missing_required_sources)
+            )
 
         copied_files: List[str] = []
         copied_dirs: List[str] = []
@@ -118,6 +138,8 @@ class GitHubPagesPublisher:
             "copied_dirs": copied_dirs,
             "missing_artifacts": missing,
             "index_source": self.index_source,
+            "required_artifacts": self.required_artifacts,
+            "missing_required_sources": missing_required_sources,
             "reused_existing_index_source": reused_existing_index_source,
             **viewer_cfg_result,
         }
@@ -137,6 +159,8 @@ class GitHubPagesPublisher:
             "copied_files_count": len(copied_files),
             "copied_dirs_count": len(copied_dirs),
             "missing_artifacts": missing,
+            "required_artifacts": self.required_artifacts,
+            "missing_required_sources": missing_required_sources,
             "auto_commit": self.auto_commit,
             "auto_push": self.auto_push,
             "reused_existing_index_source": reused_existing_index_source,

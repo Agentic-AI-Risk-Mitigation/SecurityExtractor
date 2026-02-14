@@ -2,3 +2,14 @@ github_pages:
   # Max number of lines shown in docs/* file-viewer pages.
   # Set to 0 or a negative value to disable this post-processing step.
   viewer_max_lines: 1000
+
+  # Fail publish step when required run artifacts are missing in output/.
+  strict_required_artifacts: true
+
+  # Relative paths (from output/) that must exist before publishing.
+  required_artifacts:
+    - "pipeline_overview.html"
+    - "comparison_report.html"
+    - "git_security_deltas_report.html"
+    - "llm_explainer_report.html"
+    - "docs"

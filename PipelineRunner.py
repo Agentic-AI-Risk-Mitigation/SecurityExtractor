@@ -11,8 +11,10 @@ Stages
 5. EXPLAIN  -- LLM explanation (OpenRouter)-> llm_explanations.json
 6. REPORT   -- HTML dashboards            -> comparison_report.html
                                              llm_explainer_report.html
-7. PUBLISH  -- GitHub Pages site prep     -> docs/index.html
-8. ARCHIVE  -- Run artifacts snapshot     -> output/<timestamp>/
+7. OVERVIEW -- Overview + file viewers     -> pipeline_overview.html
+                                             output/docs/*.html
+8. PUBLISH  -- GitHub Pages site prep      -> docs/index.html
+9. ARCHIVE  -- Run artifacts snapshot      -> output/<timestamp>/
 
 Settings are defined as constants below for easy exploration.
 A snapshot of the active settings is saved to the output folder
@@ -44,6 +46,7 @@ from LLMExplainer import LLMExplainer  # noqa: E402
 from ExtractionReporter import ExtractionReporter  # noqa: E402
 from ComparisonReporter import ComparisonReporter  # noqa: E402
 from LLMExplainerReporter import LLMExplainerReporter  # noqa: E402
+from PipelineOverviewGenerator import PipelineOverviewGenerator  # noqa: E402
 from GitHubPagesPublisher import GitHubPagesPublisher  # noqa: E402
 from VulnerabilityComparator import VulnerabilityComparator  # noqa: E402
 
@@ -130,6 +133,14 @@ GHPAGES_INCLUDE_FILES = [
 ]
 GHPAGES_INCLUDE_DIRS = ["docs"]
 GHPAGES_VIEWER_MAX_LINES = 1000
+GHPAGES_STRICT_REQUIRED_ARTIFACTS = True
+GHPAGES_REQUIRED_ARTIFACTS = [
+    "pipeline_overview.html",
+    "comparison_report.html",
+    "git_security_deltas_report.html",
+    "llm_explainer_report.html",
+    "docs",
+]
 GHPAGES_AUTO_COMMIT = True
 GHPAGES_AUTO_PUSH = True
 GHPAGES_COMMIT_MESSAGE = "chore(pages): update security pipeline site artifacts"
@@ -149,6 +160,7 @@ OUTPUT_LLM_EXPLANATIONS_JSON = "llm_explanations.json"
 OUTPUT_EXTRACTION_HTML = "git_security_deltas_report.html"
 OUTPUT_COMPARISON_HTML = "comparison_report.html"
 OUTPUT_LLM_EXPLAINER_HTML = "llm_explainer_report.html"
+OUTPUT_PIPELINE_OVERVIEW_HTML = "pipeline_overview.html"
 OUTPUT_SETTINGS_JSON = "pipeline_settings.json"
 OUTPUT_LOGS_DIR = "logs"
 
@@ -227,6 +239,8 @@ def _build_pipeline_cfg() -> dict:
             "include_files": GHPAGES_INCLUDE_FILES,
             "include_dirs": GHPAGES_INCLUDE_DIRS,
             "viewer_max_lines": GHPAGES_VIEWER_MAX_LINES,
+            "strict_required_artifacts": GHPAGES_STRICT_REQUIRED_ARTIFACTS,
+            "required_artifacts": GHPAGES_REQUIRED_ARTIFACTS,
             "auto_commit": GHPAGES_AUTO_COMMIT,
             "auto_push": GHPAGES_AUTO_PUSH,
             "commit_message": GHPAGES_COMMIT_MESSAGE,
@@ -246,6 +260,7 @@ def _build_pipeline_cfg() -> dict:
             "extraction_report_html": OUTPUT_EXTRACTION_HTML,
             "comparison_report_html": OUTPUT_COMPARISON_HTML,
             "llm_explainer_report_html": OUTPUT_LLM_EXPLAINER_HTML,
+            "pipeline_overview_html": OUTPUT_PIPELINE_OVERVIEW_HTML,
         },
         "logging": {
             "level": LOG_LEVEL,
@@ -428,6 +443,7 @@ def _setup_logging(
         "full_pytm": ["FullPyTMGenerator"],
         "llm_explainer": ["LLMExplainer"],
         "github_pages": ["GitHubPagesPublisher"],
+        "overview_generation": ["PipelineOverviewGenerator"],
         "comparison": ["VulnerabilityComparator"],
         "reporting": [
             "ExtractionReporter",
@@ -490,6 +506,7 @@ def main() -> None:
     extraction_html = str(output_dir / out["extraction_report_html"])
     comparison_html = str(output_dir / out["comparison_report_html"])
     llm_explainer_html = str(output_dir / out["llm_explainer_report_html"])
+    pipeline_overview_html = str(output_dir / out["pipeline_overview_html"])
     settings_output = str(output_dir / OUTPUT_SETTINGS_JSON)
     pipeline_cfg["logging"]["run_log_dir"] = log_files["log_dir"]
     pipeline_cfg["logging"]["log_files"] = {
@@ -639,9 +656,19 @@ def main() -> None:
         llm_reporter.generate(json_file=llm_output)
 
         # ---------------------------------------------------------
-        # Stage 7: PUBLISH: Prepare GitHub Pages site in repo docs/
+        # Stage 7: OVERVIEW: Build overview + file viewers for this run
         # ---------------------------------------------------------
-        logger.info("--- Stage 7: GitHub Pages Publish Prep ---")
+        logger.info("--- Stage 7: Pipeline Overview Generation ---")
+        gh_pages_cfg = pipeline_cfg.get("github_pages", {})
+        overview_result = PipelineOverviewGenerator(
+            repo_root=BASE_DIR,
+            viewer_max_lines=int(gh_pages_cfg.get("viewer_max_lines", 1000)),
+        ).generate(output_dir=output_dir)
+
+        # ---------------------------------------------------------
+        # Stage 8: PUBLISH: Prepare GitHub Pages site in repo docs/
+        # ---------------------------------------------------------
+        logger.info("--- Stage 8: GitHub Pages Publish Prep ---")
         gh_pages_cfg = pipeline_cfg.get("github_pages", {})
         gh_pages_result = GitHubPagesPublisher(
             repo_root=BASE_DIR,
@@ -649,9 +676,9 @@ def main() -> None:
         ).publish(output_dir=output_dir)
 
         # ---------------------------------------------------------
-        # Stage 8: ARCHIVE: Snapshot outputs into timestamped folder
+        # Stage 9: ARCHIVE: Snapshot outputs into timestamped folder
         # ---------------------------------------------------------
-        logger.info("--- Stage 8: Archiving Outputs ---")
+        logger.info("--- Stage 9: Archiving Outputs ---")
         archive_dir = _archive_outputs(
             output_dir=output_dir,
             files=[
@@ -664,6 +691,7 @@ def main() -> None:
                 extraction_html,
                 comparison_html,
                 llm_explainer_html,
+                pipeline_overview_html,
                 settings_output,
                 *[
                     path
@@ -703,6 +731,11 @@ def main() -> None:
             "LLM explainer status: %s, items: %s",
             llm_result.get("status", "unknown"),
             len(llm_result.get("items", [])),
+        )
+        logger.info(
+            "Overview generation status: %s, viewer_pages: %s",
+            overview_result.get("status", "unknown"),
+            overview_result.get("viewer_pages_generated", 0),
         )
         logger.info(
             "GitHub Pages publish status: %s (site_dir=%s)",
