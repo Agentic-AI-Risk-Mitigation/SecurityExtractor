@@ -126,7 +126,7 @@
 <body>
     <h1>LLM Security Explanation Report</h1>
     <p class="subtitle">
-        Generated: 2026-02-14 22:39 |
+        Generated: 2026-02-14 22:49 |
         Source: /Users/wolowskv/PycharmProjects/SecurityExtractor/output/llm_explanations.json
     </p>
 
@@ -152,11 +152,11 @@
     <div class="section-note">
         Provider: <strong>openrouter</strong> |
         Model: <strong>openrouter/aurora-alpha</strong> |
-        LLM generated_at: 2026-02-14T22:39:26.525790
+        LLM generated_at: 2026-02-14T22:49:27.258626
     </div>
 
     <h2>Executive Summary</h2>
-    <p>The recent commits only bump the CSI driver container image tags to version v1.17.1 across four test manifests. No new security findings were introduced and existing low‑ and medium‑severity Checkov issues remain unchanged, resulting in no material change to the security posture.</p>
+    <p>Four manifest updates only bump the CSI driver image version. No new vulnerabilities were introduced, and the existing low‑ and medium‑severity hardening issues remain unchanged.</p>
 
     <h2>Explained Findings</h2>
     
@@ -183,8 +183,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The attack surface, trust boundaries, and data flows remain unchanged; the newer image may contain bug fixes but does not affect security configuration.</td>
-                <td>Continue to monitor upstream releases and update images promptly; no immediate remediation required.</td>
+                <td>Attack surface and data flow remain unchanged; the manifest still uses the default namespace, a low‑severity hardening gap.</td>
+                <td>Continue keeping the image up to date and migrate the workload out of the default namespace to reduce exposure.</td>
             </tr>
 
 
@@ -197,8 +197,8 @@
                 <td><span class="badge sev-low">LOW</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>No change to attack surface or data flow; the version bump is a maintenance update.</td>
-                <td>Maintain regular image updates and track any security advisories for the hostpath plugin.</td>
+                <td>No change to attack surface; existing default‑namespace usage persists as a low‑severity hardening issue.</td>
+                <td>Upgrade images regularly and refactor the manifest into a dedicated namespace to eliminate the default‑namespace risk.</td>
             </tr>
 
 
@@ -211,8 +211,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The change does not alter the container&#x27;s capabilities, seccomp profile, or liveness probe configuration, so the attack surface stays the same.</td>
-                <td>Review the existing CKV_K8S_37 and CKV_K8S_31 findings and remediate them to improve hardening.</td>
+                <td>The manifest still contains medium‑severity findings (capabilities, seccomp profile) that affect container hardening.</td>
+                <td>Review and remove unnecessary capabilities, enforce a default seccomp profile, and keep the image version current.</td>
             </tr>
 
 
@@ -225,8 +225,8 @@
                 <td><span class="badge sev-medium">MEDIUM</span></td>
                 <td>AC9</td>
                 <td>0.05</td>
-                <td>The update does not affect the container&#x27;s security context, capabilities, or health checks; the overall posture remains unchanged.</td>
-                <td>Address the existing CKV_K8S_37 and CKV_K8S_31 hardening recommendations to reduce risk.</td>
+                <td>Existing medium‑severity hardening issues (capabilities, seccomp) remain unchanged.</td>
+                <td>Apply least‑privilege principle to container capabilities and set a secure seccomp profile while maintaining up‑to‑date images.</td>
             </tr>
 
         </tbody>
@@ -235,7 +235,7 @@
 
     <h2>Limitations</h2>
     <ul>
-        <li>Analysis is limited to the visible diff excerpts and Checkov findings; any hidden configuration changes are not considered.</li><li>Threat model deltas are zero, so impact assessment relies solely on the diff and static analysis.</li>
+        <li>All findings are pre‑existing hardening issues; the diff only updates image versions, so confidence is high but no regression or improvement is observed.</li>
     </ul>
     <h2>Ignored Findings</h2>
     <p>0 findings were explicitly ignored by the LLM output.</p>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>full_pytm_config.yaml - Security Extractor Pipeline</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background:#0d1117; color:#c9d1d9; margin:0; }
+  .header { padding:20px 32px; border-bottom:1px solid #30363d; background:#161b22; display:flex; justify-content:space-between; align-items:center; }
+  h1 { margin:0; font-size:1.2rem; color:#e6edf3; }
+  .back { color:#58a6ff; text-decoration:none; font-size:0.9rem; }
+  .meta { padding:10px 32px; border-bottom:1px solid #30363d; color:#8b949e; font-size:0.85rem; }
+  .wrap { padding:20px 32px; }
+  pre { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:0.8rem; line-height:1.45; }
+  .truncation-notice { margin-top:14px; color:#f0ad4e; border:1px solid #f0ad4e55; background:#1c1f26; border-radius:6px; padding:10px; text-align:center; font-size:0.84rem; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>full_pytm_config.yaml</h1>
+    <a class="back" href="../pipeline_overview.html">&larr; Back to Overview</a>
+  </div>
+  <div class="meta">Total Lines: 57 | Category: Config File</div>
+  <div class="wrap">
+    <pre><code># full_pytm_config.yaml -- Semantics for native full-snapshot PyTM generation.
+#
+# This file controls how Kubernetes resources are mapped and how PyTM flow
+# assumptions are made in FullPyTMGenerator.py.
+modeling:
+  workload_kinds:
+    - Deployment
+    - StatefulSet
+    - DaemonSet
+    - ReplicaSet
+    - Job
+    - CronJob
+    - Pod
+
+  datastore_kinds:
+    - Secret
+    - ConfigMap
+    - PersistentVolumeClaim
+
+  public_service_types:
+    - LoadBalancer
+    - NodePort
+
+  internet_entity_name: Internet
+
+  service:
+    default_type: ClusterIP
+    protocol_defaults:
+      protocol: HTTP
+      encrypted: false
+    encrypted_port_protocol: HTTPS
+    encrypted_ports:
+      - 443
+    port_protocol_map:
+      &quot;443&quot;:
+        protocol: HTTPS
+        encrypted: true
+
+  ingress:
+    tls_protocol: HTTPS
+    non_tls_protocol: HTTP
+    tls_port: 443
+    non_tls_port: 80
+
+  datastore_flow:
+    protocol: K8S_API
+    encrypted: true
+
+  datastore_controls:
+    encrypted_at_rest:
+      Secret: true
+      ConfigMap: false
+      PersistentVolumeClaim: false
+
+  workload_controls:
+    default_service_account_name: default
+    treat_allow_privilege_escalation_as_privileged: true</code></pre>
+    
+  </div>
+</body>
+</html>
