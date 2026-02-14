@@ -1,0 +1,88 @@
+# security_config.yaml
+
+# Vulnerability identifiers and general security terms
+keywords:
+  - "cve-"
+  - "cwe-"
+  - "ghsa-"
+  - "security advisory"
+  - "security bulletin"
+  - "security"
+  - "vulnerability"
+  - "exploit"
+  - "insecure"
+  - "unsafe"
+  - "malicious"
+  - "attack"
+  - "breach"
+  - "compromise"
+  - "fix"
+  - "patch"
+  - "remediate"
+  - "mitigate"
+  - "harden"
+  - "privileged"
+  - "rbac"
+  - "secret"
+  - "credential"
+  - "permission"
+  - "exposed"
+  - "encryption"
+  - "tls"
+  - "ssl"
+  - "password"
+  - "token"
+  - "hardcoded"
+  - "plaintext"
+  - "injection"
+  - "xss"
+  - "csrf"
+  - "bypass"
+  - "overflow"
+  - "escalation"
+  - "disclosure"
+  - "unauthorized"
+
+# File extensions to analyze
+iac_extensions:
+  - ".yaml"
+  - ".yml"
+  - ".json"
+  - ".tf"
+  - ".tfvars"
+
+# Specific filenames to look for
+iac_filenames:
+  - "Dockerfile"
+  - "docker-compose.yml"
+  - "docker-compose.yaml"
+
+# Paths likely containing IaC files (for filtering)
+iac_paths:
+  - "deploy/"
+  - "deployment/"
+  - "manifests/"
+  - "k8s/"
+  - "kubernetes/"
+  - "helm/"
+  - "charts/"
+  - "config/"
+  - "terraform/"
+  - "ansible/"
+  - "docker/"
+  - "cluster/"
+  - "hack/"
+  - "test/fixtures/"
+  - "examples/"
+
+# Patterns to exclude (reduce false positives)
+exclude_patterns:
+  - "bump version"
+  - "update readme"
+  - "typo"
+  - "spelling"
+  - "docs:"
+  - "test:"
+  - "style:"
+  - "chore:"
+  - "refactor:"

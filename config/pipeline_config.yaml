@@ -1,0 +1,57 @@
+# pipeline_config.yaml -- Central configuration for the lightweight pipeline.
+#
+# All paths are relative to the project root (where PipelineRunner.py lives).
+# No value in this file should be hardcoded in Python source code.
+
+repository:
+  path: "data/kubernetes"
+  url: "https://github.com/kubernetes/kubernetes"
+  branch: "master"
+
+extraction:
+  config_path: "config/security_config.yaml"
+  limit: 500
+  iac_only: true
+  iac_paths_only: false
+  verbose: true
+
+checkov:
+  timeout: 60
+  framework: "kubernetes"
+  skip_non_yaml: true       # skip deltas whose content lacks apiVersion/kind
+
+threat_model:
+  skip_non_k8s: true        # skip deltas whose content lacks apiVersion/kind
+  k8s_kind_map_path: "config/k8s_kind_map.yaml"
+  threat_model_config_path: "config/threat_model_config.yaml"
+
+comparison:
+  weights:
+    keyword: 0.10
+    checkov: 0.45
+    threat_model: 0.45
+  severity_weights:
+    CRITICAL: 10
+    HIGH: 5
+    MEDIUM: 2
+    LOW: 1
+    INFO: 0
+  csi_threshold: 0.30       # Commit of Security Interest threshold
+
+attack_classes:
+  config_path: "config/attack_classes.yaml"
+  rule_severity_path: "config/rule_severity.yaml"
+  stride_categories_path: "config/stride_categories.yaml"
+
+output:
+  directory: "output"
+  extraction_jsonl: "security_results.jsonl"
+  checkov_json: "checkov_results.json"
+  threat_model_json: "threat_model_results.json"
+  comparison_json: "comparison_results.json"
+  extraction_report_html: "git_security_deltas_report.html"
+  comparison_report_html: "comparison_report.html"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s [%(name)s] %(levelname)s %(message)s"

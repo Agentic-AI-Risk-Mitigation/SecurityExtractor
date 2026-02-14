@@ -1,0 +1,129 @@
+# threat_model_config.yaml -- Threat model detection rules and label definitions.
+#
+# Contains all constants used by PyTMGenerator for:
+#   - Security label transitions (label flips) and their attack class mappings
+#   - Risky label combinations
+#   - Hardening label definitions
+#   - Security label catalog
+#   - Secret detection patterns
+#   - RBAC classification constants
+#
+# Source: monitor/models/threat_diff.py + monitor/models/label_inference.py
+
+# ---------------------------------------------------------------------------
+# Label flips: security label transitions that indicate a regression.
+#
+# Each entry defines a (secure -> insecure) transition and the resulting
+# attack class and severity.  When an element's labels change from having
+# the "secure" label to having the "insecure" label, a LABEL_FLIP finding
+# is emitted.
+# ---------------------------------------------------------------------------
+label_flips:
+  - secure:       "Private"
+    insecure:     "Public"
+    attack_class: "AC3"
+    severity:     "CRITICAL"
+
+  - secure:       "EncryptedInTransit"
+    insecure:     "UnencryptedInTransit"
+    attack_class: "AC5"
+    severity:     "HIGH"
+
+  - secure:       "VerifiedArtifact"
+    insecure:     "MutableArtifact"
+    attack_class: "AC7"
+    severity:     "HIGH"
+
+  - secure:       "ReadOnly"
+    insecure:     "AdminPath"
+    attack_class: "AC6"
+    severity:     "HIGH"
+
+  - secure:       "Authenticated"
+    insecure:     "Unauthenticated"
+    attack_class: "AC2"
+    severity:     "MEDIUM"
+
+# ---------------------------------------------------------------------------
+# Risky label combinations.
+#
+# When an element has ALL labels in a given combination, and that combination
+# was not present in the before state, a NEW_RISKY_COMBO finding is emitted.
+# ---------------------------------------------------------------------------
+risky_combos:
+  - labels:       ["Public", "AdminPath"]
+    attack_class: "AC3"
+    severity:     "CRITICAL"
+
+  - labels:       ["Public", "ContainsSecrets"]
+    attack_class: "AC1"
+    severity:     "CRITICAL"
+
+  - labels:       ["Public", "Unauthenticated"]
+    attack_class: "AC3"
+    severity:     "HIGH"
+
+  - labels:       ["AdminPath", "MutableArtifact"]
+    attack_class: "AC7"
+    severity:     "HIGH"
+
+  - labels:       ["Public", "MutableArtifact"]
+    attack_class: "AC7"
+    severity:     "HIGH"
+
+  - labels:       ["Unrestricted", "ContainsSecrets"]
+    attack_class: "AC4"
+    severity:     "HIGH"
+
+# ---------------------------------------------------------------------------
+# Hardening labels.
+#
+# If a newly added Process element has NONE of these labels, it is flagged
+# as NEW_UNHARDENED (AC9, MEDIUM).
+# ---------------------------------------------------------------------------
+hardening_labels:
+  - "ReadOnly"
+  - "Authenticated"
+  - "VerifiedArtifact"
+  - "Private"
+  - "EncryptedInTransit"
+
+# ---------------------------------------------------------------------------
+# Security labels catalog (from label_inference.py SecurityLabel enum).
+#
+# These are the labels that the inference engine can assign to elements.
+# Listed here for documentation and validation.
+# ---------------------------------------------------------------------------
+security_labels:
+  - "Public"
+  - "Private"
+  - "Unrestricted"
+  - "ContainsSecrets"
+  - "Authenticated"
+  - "Unauthenticated"
+  - "EncryptedInTransit"
+  - "UnencryptedInTransit"
+  - "AdminPath"
+  - "ReadOnly"
+  - "MutableArtifact"
+  - "VerifiedArtifact"
+
+# ---------------------------------------------------------------------------
+# Secret detection pattern.
+#
+# Regex applied to ConfigMap data keys and values to detect secrets
+# that should not be stored in plain ConfigMaps.
+# ---------------------------------------------------------------------------
+secret_pattern: "(?i)(password|secret|token|api.?key|credential|private.?key|auth)"
+
+# ---------------------------------------------------------------------------
+# Read-only RBAC verbs.
+#
+# If a ClusterRole/Role uses ONLY these verbs (and no wildcards), it is
+# labelled ReadOnly.  Otherwise it gets Authenticated (or AdminPath for
+# wildcard rules).
+# ---------------------------------------------------------------------------
+readonly_verbs:
+  - "get"
+  - "list"
+  - "watch"

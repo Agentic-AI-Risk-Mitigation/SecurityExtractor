@@ -1,0 +1,37 @@
+# rule_severity.yaml -- Checkov rule ID -> severity mapping.
+#
+# Checkov does not always embed severity in its JSON output, so this file
+# provides a manual mapping used by CheckovScanner to enrich findings.
+#
+# Severity levels: CRITICAL, HIGH, MEDIUM, LOW
+# Default (if a rule is not listed here): MEDIUM
+
+# AC6 - Workload Privilege Escalation
+CKV_K8S_1:  "HIGH"           # privileged container
+CKV_K8S_6:  "HIGH"           # root user
+CKV_K8S_4:  "HIGH"           # hostNetwork
+CKV_K8S_17: "HIGH"           # hostPID
+CKV_K8S_16: "MEDIUM"         # hostIPC
+CKV_K8S_20: "HIGH"           # allowPrivilegeEscalation
+CKV_K8S_25: "MEDIUM"         # capabilities ADD
+
+# AC1 - Secret Exposure
+CKV_K8S_35: "CRITICAL"       # Secrets in ConfigMaps
+
+# AC2 - RBAC
+CKV_K8S_41: "CRITICAL"       # cluster-admin
+CKV_K8S_49: "HIGH"           # broad RBAC
+
+# AC7 - Supply Chain
+CKV_K8S_14: "MEDIUM"         # image :latest
+CKV_K8S_15: "MEDIUM"         # image digest
+
+# AC9 - Insecure Defaults
+CKV_K8S_8:  "LOW"            # liveness probe
+CKV_K8S_9:  "LOW"            # readiness probe
+CKV_K8S_12: "MEDIUM"         # capabilities not dropped
+CKV_K8S_22: "MEDIUM"         # readOnlyRootFilesystem
+CKV_K8S_28: "LOW"            # resource limits
+CKV_K8S_37: "MEDIUM"         # default service account
+CKV_K8S_21: "LOW"            # default namespace
+CKV_K8S_23: "LOW"            # seccomp profile

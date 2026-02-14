@@ -1,0 +1,68 @@
+# stride_categories.yaml -- STRIDE threat model categories.
+#
+# The STRIDE model (Microsoft) classifies threats into six categories.
+# Each attack class (AC1-AC11) maps to one or more of these categories.
+#
+# Reference: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats
+
+categories:
+  - id: "S"
+    name: "Spoofing"
+    description: >-
+      Pretending to be something or someone other than yourself.
+      Violates authentication.
+
+  - id: "T"
+    name: "Tampering"
+    description: >-
+      Modifying data or code without authorisation.
+      Violates integrity.
+
+  - id: "R"
+    name: "Repudiation"
+    description: >-
+      Claiming to have not performed an action.
+      Violates non-repudiation / auditability.
+
+  - id: "I"
+    name: "Information Disclosure"
+    description: >-
+      Exposing information to someone not authorised to see it.
+      Violates confidentiality.
+
+  - id: "D"
+    name: "Denial of Service"
+    description: >-
+      Denying or degrading service to users.
+      Violates availability.
+
+  - id: "E"
+    name: "Elevation of Privilege"
+    description: >-
+      Gaining capabilities without proper authorisation.
+      Violates authorisation.
+
+# Mapping from STRIDE category name to the attack classes it covers.
+# This is the reverse of the per-AC "stride" field in attack_classes.yaml
+# and is provided here for quick lookup.
+stride_to_attack_classes:
+  Spoofing:
+    - AC3
+  Tampering:
+    - AC4
+    - AC5
+    - AC7
+    - AC8
+  Repudiation:
+    - AC10
+  Information Disclosure:
+    - AC1
+    - AC5
+    - AC9
+  Denial of Service:
+    - AC11
+  Elevation of Privilege:
+    - AC2
+    - AC4
+    - AC6
+    - AC9
