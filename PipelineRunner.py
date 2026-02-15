@@ -24,7 +24,7 @@ as pipeline_settings.json alongside the results.
 import json
 import logging
 import shutil
-import sys
+import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any
@@ -139,6 +139,24 @@ OUTPUT_LOGS_DIR = "logs"
 LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
+# --- Execution window ---
+START_STAGE = 5
+END_STAGE = 9
+
+STAGE_MIN = 1
+STAGE_MAX = 9
+STAGE_NAMES = {
+    1: "Extraction",
+    2: "Checkov Scanning",
+    3: "Threat Modeling (Delta + Full)",
+    4: "Comparison",
+    5: "LLM Explainer",
+    6: "Reporting",
+    7: "Pipeline Overview Generation",
+    8: "GitHub Pages Publish Prep",
+    9: "Archiving Outputs",
+}
+
 
 # ===================================================================
 # Build the pipeline_cfg dict
@@ -220,6 +238,10 @@ def _build_pipeline_cfg() -> dict:
         "logging": {
             "level": LOG_LEVEL,
             "format": LOG_FORMAT,
+        },
+        "execution": {
+            "start_stage": START_STAGE,
+            "end_stage": END_STAGE,
         },
     }
 
@@ -307,6 +329,56 @@ def _load_jsonl(path: str) -> List[Dict[str, Any]]:
             except json.JSONDecodeError as e:
                 logging.warning(f"JSON decode error in {p.name}:{idx}: {e}")
     return data
+
+
+def _load_json(path: str, default: Any) -> Any:
+    """Load JSON file, returning default on missing/unreadable content."""
+    p = Path(path)
+    if not p.exists():
+        return default
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data
+    except Exception as exc:
+        logging.warning("Failed to load JSON from %s: %s", path, exc)
+        return default
+
+
+def _parse_args() -> argparse.Namespace:
+    """Parse optional CLI stage range controls."""
+    parser = argparse.ArgumentParser(
+        description="Run the Security Extractor pipeline."
+    )
+    parser.add_argument(
+        "--start-stage",
+        type=int,
+        choices=range(STAGE_MIN, STAGE_MAX + 1),
+        help=f"Start from this stage ({STAGE_MIN}-{STAGE_MAX}).",
+    )
+    parser.add_argument(
+        "--end-stage",
+        type=int,
+        choices=range(STAGE_MIN, STAGE_MAX + 1),
+        help=f"Stop after this stage ({STAGE_MIN}-{STAGE_MAX}).",
+    )
+    return parser.parse_args()
+
+
+def _should_run_stage(stage: int, start_stage: int, end_stage: int) -> bool:
+    return start_stage <= stage <= end_stage
+
+
+def _ensure_artifacts(paths: List[str], reason: str) -> None:
+    """Raise with clear guidance when required prior-stage artifacts are missing."""
+    missing = [p for p in paths if not Path(p).exists()]
+    if not missing:
+        return
+    missing_list = ", ".join(missing)
+    raise FileNotFoundError(
+        f"{reason} requires existing artifact(s): {missing_list}. "
+        "Run earlier stages first or choose an earlier --start-stage."
+    )
 
 
 def _archive_outputs(
@@ -427,10 +499,32 @@ def _setup_logging(
 
 
 def main() -> None:
+    args = _parse_args()
+
     # Build config from constants
     pipeline_cfg = _build_pipeline_cfg()
     _merge_llm_explainer_cfg(pipeline_cfg)
     _merge_github_pages_cfg(pipeline_cfg)
+
+    exec_cfg = pipeline_cfg.get("execution", {})
+    start_stage = int(exec_cfg.get("start_stage", START_STAGE))
+    end_stage = int(exec_cfg.get("end_stage", END_STAGE))
+    if args.start_stage is not None:
+        start_stage = args.start_stage
+    if args.end_stage is not None:
+        end_stage = args.end_stage
+    if start_stage > end_stage:
+        raise ValueError(
+            f"Invalid stage window: start_stage={start_stage} > end_stage={end_stage}."
+        )
+    if start_stage < STAGE_MIN or end_stage > STAGE_MAX:
+        raise ValueError(
+            f"Stage window must stay within {STAGE_MIN}-{STAGE_MAX}."
+        )
+    pipeline_cfg["execution"] = {
+        "start_stage": start_stage,
+        "end_stage": end_stage,
+    }
 
     # Load attack classes YAML
     ac_cfg = _load_yaml(
@@ -457,6 +551,15 @@ def main() -> None:
     )
     logger = logging.getLogger(__name__)
     logger.info("Run log directory: %s", log_files["log_dir"])
+    logger.info(
+        "Execution window: stages %s..%s",
+        start_stage,
+        end_stage,
+    )
+    run_stage = {
+        stage: _should_run_stage(stage, start_stage, end_stage)
+        for stage in range(STAGE_MIN, STAGE_MAX + 1)
+    }
 
     out = pipeline_cfg["output"]
     jsonl_output = str(output_dir / out["extraction_jsonl"])
@@ -478,211 +581,293 @@ def main() -> None:
     _save_settings(pipeline_cfg, settings_output)
 
     try:
+        comparison_results: List[Any] = []
+        full_pytm_results: Dict[str, Any] = {}
+        llm_result: Dict[str, Any] = {}
+        overview_result: Dict[str, Any] = {}
+        gh_pages_result: Dict[str, Any] = {}
+
         # ---------------------------------------------------------
         # Stage 1: EXTRACT: Git delta extraction
         # ---------------------------------------------------------
-        logger.info("--- Stage 1: Extraction ---")
-        ext_cfg = pipeline_cfg["extraction"]
-        sec_config = SecurityConfig.from_yaml(sec_cfg_path)
-        engine = SecurityDeltaExtractor(repo_path, sec_config)
+        if run_stage[1]:
+            logger.info("--- Stage 1: Extraction ---")
+            ext_cfg = pipeline_cfg["extraction"]
+            sec_config = SecurityConfig.from_yaml(sec_cfg_path)
+            engine = SecurityDeltaExtractor(repo_path, sec_config)
 
-        # Run extraction
-        deltas = engine.run(
-            limit=limit,
-            branch=branch,
-            iac_only=ext_cfg.get("iac_only", True),
-            iac_paths_only=ext_cfg.get("iac_paths_only", False),
-            verbose=ext_cfg.get("verbose", True),
-        )
+            # Run extraction
+            deltas = engine.run(
+                limit=limit,
+                branch=branch,
+                iac_only=ext_cfg.get("iac_only", True),
+                iac_paths_only=ext_cfg.get("iac_paths_only", False),
+                verbose=ext_cfg.get("verbose", True),
+            )
 
-        if not deltas:
-            logger.warning("No deltas found. Pipeline stopping.")
-            return
+            if not deltas:
+                logger.warning("No deltas found. Pipeline stopping.")
+                return
 
-        # Output: security_results.jsonl
-        engine.save_jsonl(deltas, jsonl_output)
+            # Output: security_results.jsonl
+            engine.save_jsonl(deltas, jsonl_output)
+        else:
+            logger.info("--- Stage 1: skipped ---")
+            if any(run_stage[s] for s in (2, 3, 4, 5, 6)):
+                _ensure_artifacts(
+                    [jsonl_output],
+                    "Later stages (2-6)",
+                )
 
         # ---------------------------------------------------------
         # Stage 2: CHECKOV: Micro View (SAST)
         # ---------------------------------------------------------
-        logger.info("--- Stage 2: Checkov Scanning ---")
-        # Input: Explicitly reads security_results.jsonl
-        scanner = CheckovScanner(
-            pipeline_cfg,
-            attack_classes_cfg=ac_cfg,
-            config_dir=str(BASE_DIR / "config"),
-        )
-        checkov_results = scanner.scan_deltas_from_file(jsonl_output)
+        if run_stage[2]:
+            logger.info("--- Stage 2: Checkov Scanning ---")
+            # Input: Explicitly reads security_results.jsonl
+            scanner = CheckovScanner(
+                pipeline_cfg,
+                attack_classes_cfg=ac_cfg,
+                config_dir=str(BASE_DIR / "config"),
+            )
+            checkov_results = scanner.scan_deltas_from_file(jsonl_output)
 
-        # Output: checkov_results.json
-        scanner.save_json(checkov_results, checkov_output)
+            # Output: checkov_results.json
+            scanner.save_json(checkov_results, checkov_output)
+        else:
+            logger.info("--- Stage 2: skipped ---")
+            if run_stage[4]:
+                _ensure_artifacts(
+                    [checkov_output],
+                    "Stage 4",
+                )
 
         # ---------------------------------------------------------
         # Stage 3A: THREAT MODEL (Delta): Macro View for per-delta comparison
         # ---------------------------------------------------------
-        logger.info("--- Stage 3A: Threat Modeling (Delta) ---")
-        # Input: Explicitly reads security_results.jsonl
-        modeler = DeltaThreatModelDiffGenerator(
-            pipeline_cfg,
-            config_dir=str(BASE_DIR / "config"),
-        )
-        threat_results = modeler.model_deltas_from_file(jsonl_output)
+        if run_stage[3]:
+            logger.info("--- Stage 3A: Threat Modeling (Delta) ---")
+            # Input: Explicitly reads security_results.jsonl
+            modeler = DeltaThreatModelDiffGenerator(
+                pipeline_cfg,
+                config_dir=str(BASE_DIR / "config"),
+            )
+            threat_results = modeler.model_deltas_from_file(jsonl_output)
 
-        # Output: threat_model_results.json
-        modeler.save_json(threat_results, threat_output)
+            # Output: threat_model_results.json
+            modeler.save_json(threat_results, threat_output)
 
-        # ---------------------------------------------------------
-        # Stage 3B: THREAT MODEL (Full): Native pytm on repository snapshot
-        # ---------------------------------------------------------
-        logger.info("--- Stage 3B: Threat Modeling (Full Native PyTM) ---")
-        full_modeler = FullPyTMGenerator(repo_path=repo_path)
-        full_pytm_results = full_modeler.run()
-        full_modeler.save_json(full_pytm_results, full_pytm_output)
+            # ---------------------------------------------------------
+            # Stage 3B: THREAT MODEL (Full): Native pytm on repository snapshot
+            # ---------------------------------------------------------
+            logger.info("--- Stage 3B: Threat Modeling (Full Native PyTM) ---")
+            full_modeler = FullPyTMGenerator(repo_path=repo_path)
+            full_pytm_results = full_modeler.run()
+            full_modeler.save_json(full_pytm_results, full_pytm_output)
+        else:
+            logger.info("--- Stage 3: skipped ---")
+            if run_stage[4]:
+                _ensure_artifacts(
+                    [threat_output, full_pytm_output],
+                    "Stage 4",
+                )
+            elif any(run_stage[s] for s in (5, 6)):
+                _ensure_artifacts(
+                    [full_pytm_output],
+                    "Stages 5-6",
+                )
 
         # ---------------------------------------------------------
         # Stage 4: COMPARE: Correlate Micro + Macro
         # ---------------------------------------------------------
-        logger.info("--- Stage 4: Comparison ---")
+        if run_stage[4]:
+            logger.info("--- Stage 4: Comparison ---")
 
-        # Input: Explicitly load all three input files from disk
-        # (simulates a clean hand-off between pipeline stages)
-        logger.info(f"Loading inputs for comparison from {output_dir}...")
-        deltas_from_file = _load_jsonl(jsonl_output)
+            # Input: Explicitly load all three input files from disk
+            # (simulates a clean hand-off between pipeline stages)
+            logger.info(f"Loading inputs for comparison from {output_dir}...")
+            deltas_from_file = _load_jsonl(jsonl_output)
 
-        if not deltas_from_file:
-            logger.error("No deltas loaded from JSONL (unexpected). Aborting comparison.")
-            return
+            if not deltas_from_file:
+                logger.error("No deltas loaded from JSONL (unexpected). Aborting comparison.")
+                return
 
-        with open(checkov_output, "r", encoding="utf-8") as f:
-            ck_data = json.load(f)
+            with open(checkov_output, "r", encoding="utf-8") as f:
+                ck_data = json.load(f)
 
-        with open(threat_output, "r", encoding="utf-8") as f:
-            tm_data = json.load(f)
+            with open(threat_output, "r", encoding="utf-8") as f:
+                tm_data = json.load(f)
 
-        comparator = VulnerabilityComparator(pipeline_cfg)
-        comparison_results = comparator.compare(deltas_from_file, ck_data, tm_data)
+            comparator = VulnerabilityComparator(pipeline_cfg)
+            comparison_results = comparator.compare(deltas_from_file, ck_data, tm_data)
 
-        # Output: comparison_results.json
-        comparator.save_json(comparison_results, comparison_output)
+            # Output: comparison_results.json
+            comparator.save_json(comparison_results, comparison_output)
+        else:
+            logger.info("--- Stage 4: skipped ---")
+            if any(run_stage[s] for s in (5, 6)):
+                _ensure_artifacts(
+                    [comparison_output],
+                    "Stages 5-6",
+                )
 
         # ---------------------------------------------------------
         # Stage 5: EXPLAIN: LLM explanation over top findings
         # ---------------------------------------------------------
-        logger.info("--- Stage 5: LLM Explainer ---")
-        llm_cfg = pipeline_cfg.get("llm_explainer", {})
-        llm_result: Dict[str, Any]
-        if llm_cfg.get("enabled", True):
-            llm_explainer = LLMExplainer(
-                pipeline_cfg,
-                prompt_template_path=str(BASE_DIR / llm_cfg.get(
-                    "prompt_template", "config/llm_prompt_template.txt"
-                )),
-            )
-            llm_result = llm_explainer.explain_from_files(
-                comparison_json_file=comparison_output,
-                extraction_jsonl_file=jsonl_output,
-                full_pytm_json_file=full_pytm_output,
-            )
+        if run_stage[5]:
+            logger.info("--- Stage 5: LLM Explainer ---")
+            llm_cfg = pipeline_cfg.get("llm_explainer", {})
+            if llm_cfg.get("enabled", True):
+                llm_explainer = LLMExplainer(
+                    pipeline_cfg,
+                    prompt_template_path=str(BASE_DIR / llm_cfg.get(
+                        "prompt_template", "config/llm_prompt_template.txt"
+                    )),
+                )
+                llm_result = llm_explainer.explain_from_files(
+                    comparison_json_file=comparison_output,
+                    extraction_jsonl_file=jsonl_output,
+                    full_pytm_json_file=full_pytm_output,
+                )
+            else:
+                llm_result = {
+                    "status": "skipped",
+                    "generated_at": datetime.now().isoformat(),
+                    "limitations": ["llm_explainer.enabled is false"],
+                    "items": [],
+                }
+            LLMExplainer.save_json(llm_result, llm_output)
         else:
-            llm_result = {
-                "status": "skipped",
-                "generated_at": datetime.now().isoformat(),
-                "limitations": ["llm_explainer.enabled is false"],
-                "items": [],
-            }
-        LLMExplainer.save_json(llm_result, llm_output)
+            logger.info("--- Stage 5: skipped ---")
+            if run_stage[6]:
+                _ensure_artifacts(
+                    [llm_output],
+                    "Stage 6",
+                )
 
         # ---------------------------------------------------------
         # Stage 6: REPORT: Generate HTML reports
         # ---------------------------------------------------------
-        logger.info("--- Stage 6: Reporting ---")
+        if run_stage[6]:
+            logger.info("--- Stage 6: Reporting ---")
 
-        # Report 1: Extraction Table
-        # Input: Explicitly load from security_results.jsonl
-        ext_reporter = ExtractionReporter(extraction_html, repo_url)
-        ext_reporter.generate(jsonl_file=jsonl_output)
+            # Report 1: Extraction Table
+            # Input: Explicitly load from security_results.jsonl
+            ext_reporter = ExtractionReporter(extraction_html, repo_url)
+            ext_reporter.generate(jsonl_file=jsonl_output)
 
-        # Report 2: Comparison Dashboard
-        # Input: Explicitly load from comparison_results.json
-        comp_reporter = ComparisonReporter(
-            comparison_html, repo_url, ac_cfg
-        )
-        comp_reporter.generate(
-            json_file=comparison_output,
-            full_pytm_json_file=full_pytm_output,
-            llm_json_file=llm_output,
-        )
+            # Report 2: Comparison Dashboard
+            # Input: Explicitly load from comparison_results.json
+            comp_reporter = ComparisonReporter(
+                comparison_html, repo_url, ac_cfg
+            )
+            comp_reporter.generate(
+                json_file=comparison_output,
+                full_pytm_json_file=full_pytm_output,
+                llm_json_file=llm_output,
+            )
 
-        # Report 3: LLM Explainer Standalone Report
-        llm_reporter = LLMExplainerReporter(llm_explainer_html, repo_url)
-        llm_reporter.generate(json_file=llm_output)
+            # Report 3: LLM Explainer Standalone Report
+            llm_reporter = LLMExplainerReporter(llm_explainer_html, repo_url)
+            llm_reporter.generate(json_file=llm_output)
+        else:
+            logger.info("--- Stage 6: skipped ---")
 
         # ---------------------------------------------------------
         # Stage 7: OVERVIEW: Build overview + file viewers for this run
         # ---------------------------------------------------------
-        logger.info("--- Stage 7: Pipeline Overview Generation ---")
-        gh_pages_cfg = pipeline_cfg.get("github_pages", {})
-        overview_result = PipelineOverviewGenerator(
-            repo_root=BASE_DIR,
-            viewer_max_lines=int(gh_pages_cfg.get("viewer_max_lines", 1000)),
-            viewer_max_line_chars=int(
-                gh_pages_cfg.get("viewer_max_line_chars", 4000)
-            ),
-        ).generate(output_dir=output_dir)
+        if run_stage[7]:
+            logger.info("--- Stage 7: Pipeline Overview Generation ---")
+            gh_pages_cfg = pipeline_cfg.get("github_pages", {})
+            overview_result = PipelineOverviewGenerator(
+                repo_root=BASE_DIR,
+                viewer_max_lines=int(gh_pages_cfg.get("viewer_max_lines", 1000)),
+                viewer_max_line_chars=int(
+                    gh_pages_cfg.get("viewer_max_line_chars", 4000)
+                ),
+            ).generate(output_dir=output_dir)
+        else:
+            logger.info("--- Stage 7: skipped ---")
+            if run_stage[8]:
+                _ensure_artifacts(
+                    [pipeline_overview_html],
+                    "Stage 8+",
+                )
 
         # ---------------------------------------------------------
         # Stage 8: PUBLISH: Prepare GitHub Pages site in repo docs/
         # ---------------------------------------------------------
-        logger.info("--- Stage 8: GitHub Pages Publish Prep ---")
-        gh_pages_cfg = pipeline_cfg.get("github_pages", {})
-        gh_pages_result = GitHubPagesPublisher(
-            repo_root=BASE_DIR,
-            config=gh_pages_cfg,
-        ).publish(output_dir=output_dir)
+        if run_stage[8]:
+            logger.info("--- Stage 8: GitHub Pages Publish Prep ---")
+            gh_pages_cfg = pipeline_cfg.get("github_pages", {})
+            gh_pages_result = GitHubPagesPublisher(
+                repo_root=BASE_DIR,
+                config=gh_pages_cfg,
+            ).publish(output_dir=output_dir)
+        else:
+            logger.info("--- Stage 8: skipped ---")
 
         # ---------------------------------------------------------
         # Stage 9: ARCHIVE: Snapshot outputs into timestamped folder
         # ---------------------------------------------------------
-        logger.info("--- Stage 9: Archiving Outputs ---")
-        archive_dir = _archive_outputs(
-            output_dir=output_dir,
-            files=[
-                jsonl_output,
-                checkov_output,
-                threat_output,
-                full_pytm_output,
-                comparison_output,
-                llm_output,
-                extraction_html,
-                comparison_html,
-                llm_explainer_html,
-                pipeline_overview_html,
-                settings_output,
-                *[
-                    path
-                    for name, path in log_files.items()
-                    if name != "log_dir"
+        archive_dir = None
+        if run_stage[9]:
+            logger.info("--- Stage 9: Archiving Outputs ---")
+            archive_dir = _archive_outputs(
+                output_dir=output_dir,
+                files=[
+                    jsonl_output,
+                    checkov_output,
+                    threat_output,
+                    full_pytm_output,
+                    comparison_output,
+                    llm_output,
+                    extraction_html,
+                    comparison_html,
+                    llm_explainer_html,
+                    pipeline_overview_html,
+                    settings_output,
+                    *[
+                        path
+                        for name, path in log_files.items()
+                        if name != "log_dir"
+                    ],
                 ],
-            ],
-            run_timestamp=run_timestamp,
-        )
+                run_timestamp=run_timestamp,
+            )
+        else:
+            logger.info("--- Stage 9: skipped ---")
 
         # ---------------------------------------------------------
         # Final Summary
         # ---------------------------------------------------------
+        if not comparison_results and Path(comparison_output).exists():
+            comparison_results = _load_json(comparison_output, [])
+
+        if not full_pytm_results and Path(full_pytm_output).exists():
+            full_pytm_results = _load_json(full_pytm_output, {})
+
+        if not llm_result and Path(llm_output).exists():
+            llm_result = _load_json(llm_output, {})
+
+        def _read_field(item: Any, field: str, default: Any = None) -> Any:
+            if isinstance(item, dict):
+                return item.get(field, default)
+            return getattr(item, field, default)
+
         regressions = sum(
             1 for r in comparison_results
-            if r.posture_direction == "regression"
+            if _read_field(r, "posture_direction") == "regression"
         )
         improvements = sum(
             1 for r in comparison_results
-            if r.posture_direction == "improvement"
+            if _read_field(r, "posture_direction") == "improvement"
         )
         csi_count = sum(
-            1 for r in comparison_results if r.is_csi
+            1 for r in comparison_results if bool(_read_field(r, "is_csi", False))
         )
         macro_only = sum(
-            1 for r in comparison_results if r.macro_only
+            1 for r in comparison_results if bool(_read_field(r, "macro_only", False))
         )
 
         logger.info("Pipeline completed successfully.")
@@ -710,7 +895,15 @@ def main() -> None:
         logger.info("LLM explainer report saved to: %s", llm_explainer_html)
         logger.info("Run logs saved to: %s", log_files["log_dir"])
         logger.info(f"Reports saved to: {output_dir}")
-        logger.info(f"Run archive saved to: {archive_dir}")
+        if archive_dir is not None:
+            logger.info(f"Run archive saved to: {archive_dir}")
+        logger.info(
+            "Executed stage range: %s..%s (%s -> %s)",
+            start_stage,
+            end_stage,
+            STAGE_NAMES.get(start_stage, "unknown"),
+            STAGE_NAMES.get(end_stage, "unknown"),
+        )
 
     except Exception as e:
         logger.exception("Pipeline failed with error:")

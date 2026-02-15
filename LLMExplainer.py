@@ -90,6 +90,9 @@ class LLMExplainer:
         self.top_n: int = int(cfg.get("top_n", 5))
         self.timeout_seconds: int = int(cfg.get("timeout_seconds", 30))
         self.max_output_tokens: int = int(cfg.get("max_output_tokens", 1800))
+        self.item_max_output_tokens: int = int(
+            cfg.get("item_max_output_tokens", 900)
+        )
         self.temperature: float = float(cfg.get("temperature", 0.2))
         self.model: str = (
             os.environ.get("OPENROUTER_MODEL")
@@ -235,6 +238,7 @@ class LLMExplainer:
             llm_raw, model_used, model_attempts = self._call_openrouter(
                 messages=messages,
                 api_key=api_key,
+                max_tokens=self.max_output_tokens,
             )
             llm_parsed = self._parse_json_response(llm_raw)
         except OpenRouterModelsExhausted as exc:
@@ -255,16 +259,91 @@ class LLMExplainer:
                 attempted_models=model_attempts,
             )
 
-        parsed_items = llm_parsed.get("items")
-        if isinstance(parsed_items, list) and len(parsed_items) == 0:
-            normalized_items = self._synthesize_items_from_findings(top_items)
-            limitations = list(llm_parsed.get("limitations", []))
-            limitations.append(
-                "LLM returned no items; synthetic explanations were generated from top findings."
+        if not llm_parsed:
+            normalized_items = self._normalize_items(top_items, [])
+            limitations = [
+                "LLM response was not valid JSON (likely truncated by output token limit); "
+                "synthetic explanations were generated from top findings."
+            ]
+            if llm_raw and not llm_raw.rstrip().endswith("}"):
+                limitations.append("LLM raw response appears truncated (does not end with '}' ).")
+            filled = self._fill_items_via_per_item_calls(
+                top_items=top_items,
+                extraction_context=extraction_context,
+                full_pytm_summary=full_pytm_summary,
+                api_key=api_key,
+                seed_items=normalized_items,
             )
+            if filled > 0:
+                limitations.append(
+                    f"Recovered {filled} item explanation(s) using per-finding LLM fallback."
+                )
+            synth_items = self._synthesize_items_from_findings(top_items)
+            backfilled = self._backfill_empty_item_fields(normalized_items, synth_items)
+            if backfilled > 0:
+                limitations.append(
+                    f"Backfilled {backfilled} remaining item(s) with deterministic fallback text."
+                )
+            overall_posture = self._infer_overall_posture(top_items)
+            executive_summary = self._build_fallback_executive_summary(
+                top_items,
+                context="Batch JSON parse failed; per-finding fallback was applied.",
+            )
+            ignored_findings: List[Dict[str, Any]] = []
         else:
-            normalized_items = self._normalize_items(top_items, parsed_items or [])
-            limitations = llm_parsed.get("limitations", [])
+            parsed_items = llm_parsed.get("items")
+            if isinstance(parsed_items, list) and len(parsed_items) == 0:
+                normalized_items = self._normalize_items(top_items, [])
+                limitations = list(llm_parsed.get("limitations", []))
+                limitations.append(
+                    "LLM returned no items; per-finding fallback was applied."
+                )
+                filled = self._fill_items_via_per_item_calls(
+                    top_items=top_items,
+                    extraction_context=extraction_context,
+                    full_pytm_summary=full_pytm_summary,
+                    api_key=api_key,
+                    seed_items=normalized_items,
+                )
+                if filled > 0:
+                    limitations.append(
+                        f"Recovered {filled} item explanation(s) using per-finding LLM fallback."
+                    )
+                synth_items = self._synthesize_items_from_findings(top_items)
+                backfilled = self._backfill_empty_item_fields(normalized_items, synth_items)
+                if backfilled > 0:
+                    limitations.append(
+                        f"Backfilled {backfilled} remaining item(s) with deterministic fallback text."
+                    )
+            else:
+                normalized_items = self._normalize_items(top_items, parsed_items or [])
+                limitations = list(llm_parsed.get("limitations", []))
+                filled = self._fill_items_via_per_item_calls(
+                    top_items=top_items,
+                    extraction_context=extraction_context,
+                    full_pytm_summary=full_pytm_summary,
+                    api_key=api_key,
+                    seed_items=normalized_items,
+                )
+                if filled > 0:
+                    limitations.append(
+                        f"Recovered {filled} incomplete item explanation(s) using per-finding LLM fallback."
+                    )
+                synth_items = self._synthesize_items_from_findings(top_items)
+                backfilled = self._backfill_empty_item_fields(normalized_items, synth_items)
+                if backfilled > 0:
+                    limitations.append(
+                        f"Backfilled {backfilled} remaining incomplete item(s) with deterministic fallback text."
+                    )
+            overall_posture = llm_parsed.get("overall_posture", "unknown")
+            executive_summary = llm_parsed.get("executive_summary", "")
+            if not str(executive_summary).strip():
+                executive_summary = self._build_fallback_executive_summary(
+                    top_items,
+                    context="LLM did not return an executive summary.",
+                )
+            ignored_findings = llm_parsed.get("ignored_findings", [])
+
         return {
             "status": "ok",
             "generated_at": start,
@@ -273,10 +352,10 @@ class LLMExplainer:
             "model_attempts": model_attempts,
             "top_n_requested": self.top_n,
             "top_n_used": len(top_items),
-            "overall_posture": llm_parsed.get("overall_posture", "unknown"),
-            "executive_summary": llm_parsed.get("executive_summary", ""),
+            "overall_posture": overall_posture,
+            "executive_summary": executive_summary,
             "items": normalized_items,
-            "ignored_findings": llm_parsed.get("ignored_findings", []),
+            "ignored_findings": ignored_findings,
             "limitations": limitations,
             "llm_raw_response": llm_raw,
             "llm_parsed_response": llm_parsed,
@@ -589,6 +668,7 @@ class LLMExplainer:
         self,
         messages: List[Dict[str, str]],
         api_key: str,
+        max_tokens: Optional[int] = None,
     ) -> tuple[str, str, List[str]]:
         errors: List[str] = []
         attempts: List[str] = []
@@ -600,6 +680,7 @@ class LLMExplainer:
                     model=model,
                     messages=messages,
                     api_key=api_key,
+                    max_tokens=max_tokens,
                 )
                 if model != self.model:
                     logger.warning(
@@ -629,12 +710,13 @@ class LLMExplainer:
         model: str,
         messages: List[Dict[str, str]],
         api_key: str,
+        max_tokens: Optional[int] = None,
     ) -> str:
         payload = {
             "model": model,
             "messages": messages,
             "temperature": self.temperature,
-            "max_tokens": self.max_output_tokens,
+            "max_tokens": int(max_tokens or self.max_output_tokens),
         }
         body = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(
@@ -736,6 +818,166 @@ class LLMExplainer:
                 }
             )
         return normalized
+
+    @staticmethod
+    def _item_has_explanation(item: Dict[str, Any]) -> bool:
+        for field in (
+            "title",
+            "vulnerability_summary",
+            "security_impact",
+            "recommended_action",
+        ):
+            if str(item.get(field, "")).strip():
+                return True
+        return False
+
+    def _build_single_item_prompt(
+        self,
+        finding_context: Dict[str, Any],
+        full_pytm_summary: Dict[str, Any],
+    ) -> str:
+        payload = {
+            "full_pytm_summary": full_pytm_summary,
+            "top_finding": finding_context,
+        }
+        return (
+            "You are a strict JSON security explainer. "
+            "Return exactly one JSON object with fields: "
+            "title, posture_direction, severity, attack_class, "
+            "vulnerability_summary, security_impact, recommended_action, confidence. "
+            "Use only provided data; no markdown.\n\n"
+            f"{json.dumps(payload, ensure_ascii=False, indent=2)}"
+        )
+
+    def _fill_items_via_per_item_calls(
+        self,
+        top_items: List[Dict[str, Any]],
+        extraction_context: Dict[str, Dict[str, Any]],
+        full_pytm_summary: Dict[str, Any],
+        api_key: str,
+        seed_items: List[Dict[str, Any]],
+    ) -> int:
+        """Use one LLM call per finding to fill missing explanation text."""
+        filled = 0
+        for idx, base in enumerate(top_items):
+            if idx >= len(seed_items):
+                break
+            target = seed_items[idx]
+            if self._item_has_explanation(target):
+                continue
+            finding_ctx = self._build_finding_context(base, extraction_context)
+            user_prompt = self._build_single_item_prompt(
+                finding_context=finding_ctx,
+                full_pytm_summary=full_pytm_summary,
+            )
+            messages = [
+                {"role": "system", "content": "You are a strict JSON security explainer."},
+                {"role": "user", "content": user_prompt},
+            ]
+            try:
+                raw, _model, _attempts = self._call_openrouter(
+                    messages=messages,
+                    api_key=api_key,
+                    max_tokens=self.item_max_output_tokens,
+                )
+                parsed = self._parse_json_response(raw)
+                if not parsed:
+                    continue
+                if isinstance(parsed.get("item"), dict):
+                    parsed = parsed.get("item", {})
+                if not isinstance(parsed, dict):
+                    continue
+                candidate = self._normalize_items([base], [parsed])[0]
+                if not self._item_has_explanation(candidate):
+                    continue
+                for field in (
+                    "posture_direction",
+                    "severity",
+                    "attack_class",
+                    "title",
+                    "vulnerability_summary",
+                    "security_impact",
+                    "recommended_action",
+                    "confidence",
+                ):
+                    target[field] = candidate.get(field, target.get(field))
+                filled += 1
+            except Exception as exc:
+                logger.warning(
+                    "Per-item LLM fallback failed for %s:%s: %s",
+                    base.get("commit_sha", ""),
+                    base.get("file_path", ""),
+                    exc,
+                )
+        return filled
+
+    @staticmethod
+    def _build_fallback_executive_summary(
+        top_items: List[Dict[str, Any]],
+        context: str = "",
+    ) -> str:
+        regressions = sum(
+            1 for i in top_items if i.get("posture_direction") == "regression"
+        )
+        improvements = sum(
+            1 for i in top_items if i.get("posture_direction") == "improvement"
+        )
+        total = len(top_items)
+        base = (
+            f"Top findings analyzed: {total}. "
+            f"Regressions: {regressions}, improvements: {improvements}."
+        )
+        if context:
+            return f"{context} {base}"
+        return base
+
+    @staticmethod
+    def _backfill_empty_item_fields(
+        normalized_items: List[Dict[str, Any]],
+        synthesized_items: List[Dict[str, Any]],
+    ) -> int:
+        """Fill empty textual fields with deterministic fallback text."""
+        backfilled = 0
+        text_fields = (
+            "title",
+            "vulnerability_summary",
+            "security_impact",
+            "recommended_action",
+        )
+        for idx, item in enumerate(normalized_items):
+            synth = synthesized_items[idx] if idx < len(synthesized_items) else {}
+            has_text = any(str(item.get(field, "")).strip() for field in text_fields)
+            if has_text:
+                continue
+            for field in text_fields:
+                item[field] = synth.get(field, "")
+            if str(item.get("severity", "unknown")).lower() == "unknown":
+                item["severity"] = synth.get("severity", "unknown")
+            if not str(item.get("attack_class", "")).strip():
+                item["attack_class"] = synth.get("attack_class", "")
+            try:
+                if float(item.get("confidence", 0.0) or 0.0) <= 0.0:
+                    item["confidence"] = synth.get("confidence", 0.35)
+            except (TypeError, ValueError):
+                item["confidence"] = synth.get("confidence", 0.35)
+            backfilled += 1
+        return backfilled
+
+    @staticmethod
+    def _infer_overall_posture(top_items: List[Dict[str, Any]]) -> str:
+        regressions = sum(
+            1 for item in top_items if item.get("posture_direction") == "regression"
+        )
+        improvements = sum(
+            1 for item in top_items if item.get("posture_direction") == "improvement"
+        )
+        if regressions > 0 and improvements > 0:
+            return "mixed"
+        if regressions > 0:
+            return "regression"
+        if improvements > 0:
+            return "improvement"
+        return "no_material_change"
 
     @staticmethod
     def _parse_dotenv_line(line: str) -> Optional[tuple[str, str]]:

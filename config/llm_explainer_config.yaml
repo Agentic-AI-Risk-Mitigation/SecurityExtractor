@@ -11,7 +11,9 @@ llm_explainer:
 
   # Generation controls
   timeout_seconds: 30
-  max_output_tokens: 1800
+  max_output_tokens: 2600
+  # Token cap used when batch output is missing/truncated and per-item fallback is invoked.
+  item_max_output_tokens: 900
   temperature: 0.2
 
   # Model routing
