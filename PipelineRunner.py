@@ -140,7 +140,7 @@ LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
 
 # --- Execution window ---
-START_STAGE = 5
+START_STAGE = 1
 END_STAGE = 9
 
 STAGE_MIN = 1
